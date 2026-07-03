@@ -1,0 +1,258 @@
+/* ============================================================
+   Capital Store MSK — backend
+   Чистый Node.js (http/https/fs), без внешних зависимостей.
+   Раздаёт статику + два API-эндпоинта:
+     GET  /api/products  → VK Market (кэш 5 мин), либо []
+     POST /api/order     → заявка в Telegram
+   ============================================================ */
+
+const http = require('http');
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
+const { URL } = require('url');
+
+// --- .env (простой парсер, без dotenv) ---
+loadEnv();
+const {
+  PORT = 3000,
+  VK_TOKEN, VK_GROUP_ID, VK_API_VERSION = '5.199',
+  TG_BOT_TOKEN, TG_CHAT_ID,
+} = process.env;
+
+const ROOT = __dirname;
+const MIME = {
+  '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8',
+  '.js':'text/javascript; charset=utf-8', '.json':'application/json; charset=utf-8',
+  '.svg':'image/svg+xml', '.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg',
+  '.webp':'image/webp', '.ico':'image/x-icon', '.woff2':'font/woff2', '.txt':'text/plain; charset=utf-8',
+};
+
+/* ============================================================
+   HTTP-сервер
+   ============================================================ */
+const server = http.createServer(async (req, res) => {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+
+  try {
+    if (url.pathname === '/api/products' && req.method === 'GET') return handleProducts(res);
+    if (url.pathname === '/api/order'    && req.method === 'POST') return handleOrder(req, res);
+    if (url.pathname.startsWith('/api/')) return json(res, 404, { error:'not found' });
+    return serveStatic(url.pathname, res);
+  } catch (err) {
+    console.error('Ошибка запроса:', err);
+    json(res, 500, { error:'internal error' });
+  }
+});
+
+server.listen(PORT, () => {
+  console.log(`\n  Capital Store MSK → http://localhost:${PORT}`);
+  console.log(`  VK Market:  ${VK_TOKEN && VK_GROUP_ID ? 'подключён' : 'демо-режим (нет токенов)'}`);
+  console.log(`  Telegram:   ${TG_BOT_TOKEN && TG_CHAT_ID ? 'подключён' : 'не настроен (заявки не уйдут)'}\n`);
+});
+
+/* ============================================================
+   /api/products — VK Market
+   ============================================================ */
+let cache = { at:0, data:null };
+const CACHE_MS = 5 * 60 * 1000;
+
+async function handleProducts(res) {
+  if (!VK_TOKEN || !VK_GROUP_ID) return json(res, 200, []); // фронт покажет демо
+  if (cache.data && Date.now() - cache.at < CACHE_MS) return json(res, 200, cache.data);
+
+  try {
+    const owner = -Math.abs(Number(VK_GROUP_ID)); // группа → отрицательный owner_id
+    const api = `https://api.vk.com/method/market.get?owner_id=${owner}&count=100&extended=1`
+      + `&access_token=${VK_TOKEN}&v=${VK_API_VERSION}`;
+    const raw = await httpsGetJSON(api);
+    if (raw.error) throw new Error(raw.error.error_msg || 'VK error');
+
+    const items = (raw.response && raw.response.items) || [];
+    const products = items.map(normalizeVk);
+    cache = { at: Date.now(), data: products };
+    json(res, 200, products);
+  } catch (err) {
+    console.error('VK market.get:', err.message);
+    json(res, 200, cache.data || []); // при сбое — отдаём кэш или пусто
+  }
+}
+
+function normalizeVk(it) {
+  const price = it.price ? Math.round(Number(it.price.amount) / 100) : 0;
+  const old = it.price && it.price.old_amount ? Math.round(Number(it.price.old_amount) / 100) : 0;
+  const images = (it.photos || []).map(p => {
+    const sizes = p.sizes || [];
+    const best = sizes[sizes.length - 1];
+    return best ? best.url : '';
+  }).filter(Boolean);
+  const img = images[0] || (it.thumb_photo || '');
+  return {
+    id: String(it.id),
+    name: it.title || 'Товар',
+    brand: '',
+    price, old,
+    cat: guessCat(it.title || ''),
+    img,
+    images: images.length ? images : [img].filter(Boolean),
+    desc: (it.description || '').slice(0, 600),
+    sizes: [],
+    tag: old ? 'Sale' : '',
+  };
+}
+
+// Грубое угадывание категории по названию. При желании — уточнить в VK.
+function guessCat(title) {
+  const t = title.toLowerCase();
+  if (/(куртк|пуховик|пальт|парк|плащ|ветровк|бомбер|дублён|шуб)/.test(t)) return 'outer';
+  if (/(брюк|штан|джинс|шорт|карго|легинс)/.test(t)) return 'pants';
+  if (/(худи|свитшот|свитер|кофт|толстовк|джемпер|кардиг)/.test(t)) return 'hoodie';
+  if (/(футбол|майк|поло|лонгслив|t-shirt|tee)/.test(t)) return 'tshirt';
+  if (/(рюкзак|сумк|шоппер|тоут|барсет|клатч|bag)/.test(t)) return 'bags';
+  if (/(кроссов|кед|ботин|туфл|сапог|лофер|слайд|обув|sneaker|shoe|boot)/.test(t)) return 'shoes';
+  return 'acc';
+}
+
+/* ============================================================
+   /api/order — заявка в Telegram
+   ============================================================ */
+function handleOrder(req, res) {
+  readBody(req, 25_000).then(async body => {
+    let data;
+    try { data = JSON.parse(body || '{}'); }
+    catch { return json(res, 400, { error:'bad json' }); }
+
+    // антиспам: honeypot-поле должно быть пустым
+    if (data.website) return json(res, 200, { ok:true }); // тихо игнорируем бота
+
+    if (!data.name || !data.phone) return json(res, 400, { error:'name и phone обязательны' });
+
+    if (!TG_BOT_TOKEN || !TG_CHAT_ID) {
+      console.log('Заявка (Telegram не настроен):', data.name, data.phone);
+      return json(res, 503, { error:'Telegram не настроен на сервере' });
+    }
+
+    try {
+      await sendTelegram(formatOrder(data));
+      json(res, 200, { ok:true });
+    } catch (err) {
+      console.error('Telegram sendMessage:', err.message);
+      json(res, 502, { error:'не удалось отправить в Telegram' });
+    }
+  }).catch(() => json(res, 400, { error:'bad request' }));
+}
+
+function formatOrder(d) {
+  const esc = s => String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const L = [];
+  L.push('<b>Новая заявка — Capital Store MSK</b>');
+  L.push('');
+  L.push(`<b>Имя:</b> ${esc(d.name)}`);
+  L.push(`<b>Телефон:</b> ${esc(d.phone)}`);
+  if (d.email)    L.push(`<b>Контакт:</b> ${esc(d.email)}`);
+  if (d.delivery) L.push(`<b>Доставка:</b> ${esc(d.delivery)}`);
+  if (d.item)     L.push(`<b>Товар:</b> ${esc(d.item)}`);
+  if (d.comment)  L.push(`<b>Комментарий:</b> ${esc(d.comment)}`);
+
+  if (d.cart && Array.isArray(d.cart.items) && d.cart.items.length) {
+    L.push('');
+    L.push('<b>Корзина:</b>');
+    d.cart.items.forEach(i => {
+      const line = [i.brand, i.name].filter(Boolean).join(' ');
+      L.push(`• ${esc(line)} — ${esc(i.size)} × ${i.qty} = ${fmt(i.price * i.qty)} ₽`);
+    });
+    L.push(`<b>Итого:</b> ${fmt(d.cart.total)} ₽`);
+  }
+  return L.join('\n');
+}
+const fmt = n => new Intl.NumberFormat('ru-RU').format(Math.round(Number(n) || 0));
+
+function sendTelegram(text) {
+  const payload = JSON.stringify({ chat_id: TG_CHAT_ID, text, parse_mode:'HTML', disable_web_page_preview:true });
+  return httpsRequest({
+    method:'POST',
+    hostname:'api.telegram.org',
+    path:`/bot${TG_BOT_TOKEN}/sendMessage`,
+    headers:{ 'Content-Type':'application/json', 'Content-Length':Buffer.byteLength(payload) },
+  }, payload).then(r => {
+    const res = JSON.parse(r || '{}');
+    if (!res.ok) throw new Error(res.description || 'telegram error');
+    return res;
+  });
+}
+
+/* ============================================================
+   Статика
+   ============================================================ */
+function serveStatic(pathname, res) {
+  let rel = decodeURIComponent(pathname);
+  if (rel === '/' || rel === '') rel = '/index.html';
+
+  // защита от выхода за корень
+  const filePath = path.normalize(path.join(ROOT, rel));
+  if (!filePath.startsWith(ROOT)) return json(res, 403, { error:'forbidden' });
+
+  fs.readFile(filePath, (err, buf) => {
+    if (err) {
+      // нет расширения → пробуем .html; иначе 404
+      if (!path.extname(filePath)) return serveStatic(pathname + '.html', res);
+      res.writeHead(404, { 'Content-Type':'text/html; charset=utf-8' });
+      return res.end('<h1>404</h1><p>Страница не найдена. <a href="/">На главную</a></p>');
+    }
+    const ext = path.extname(filePath).toLowerCase();
+    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+    res.end(buf);
+  });
+}
+
+/* ============================================================
+   Вспомогательные функции
+   ============================================================ */
+function json(res, code, obj) {
+  const body = JSON.stringify(obj);
+  res.writeHead(code, { 'Content-Type':'application/json; charset=utf-8' });
+  res.end(body);
+}
+
+function readBody(req, limit = 1e6) {
+  return new Promise((resolve, reject) => {
+    let data = '', size = 0;
+    req.on('data', c => { size += c.length; if (size > limit) { reject(new Error('too large')); req.destroy(); } else data += c; });
+    req.on('end', () => resolve(data));
+    req.on('error', reject);
+  });
+}
+
+function httpsGetJSON(url) {
+  return httpsRequest(url).then(r => JSON.parse(r));
+}
+
+function httpsRequest(options, body) {
+  return new Promise((resolve, reject) => {
+    const req = https.request(options, resp => {
+      let data = '';
+      resp.on('data', c => data += c);
+      resp.on('end', () => resolve(data));
+    });
+    req.on('error', reject);
+    req.setTimeout(15000, () => { req.destroy(new Error('timeout')); });
+    if (body) req.write(body);
+    req.end();
+  });
+}
+
+// Минимальный парсер .env — без зависимостей.
+function loadEnv() {
+  try {
+    const file = path.join(__dirname, '.env');
+    if (!fs.existsSync(file)) return;
+    fs.readFileSync(file, 'utf8').split('\n').forEach(line => {
+      const m = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (!m) return;
+      let [, k, v = ''] = m;
+      v = v.trim().replace(/^['"]|['"]$/g, '');
+      if (!(k in process.env)) process.env[k] = v;
+    });
+  } catch (e) { /* нет .env — не критично */ }
+}

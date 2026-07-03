@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capital Store MSK — оригинальная брендовая одежда с доставкой</title>
+<meta name="description" content="Capital Store MSK — витрина оригинальной брендовой одежды, обуви и аксессуаров с доставкой из-за рубежа. Проверка подлинности каждой вещи.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="site-header" data-page="home"></div>
+
+<!-- HERO -->
+<section class="hero hero-center">
+  <div class="hero-bg">
+    <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1800&q=80" alt="Брендовая одежда Capital Store MSK">
+  </div>
+  <div class="container">
+    <div class="hero-inner" data-reveal>
+      <span class="hero-tagline">Брендовая одежда из-за рубежа</span>
+      <h1 class="hero-word">CAPITAL STORE <span class="pipe">|</span> MSK</h1>
+      <div class="hero-actions">
+        <a href="catalog.html" class="btn btn-cream btn-lg hero-cta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 8h12l1 12H5z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+          <span>В магазин</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  <a href="#cats" class="scroll-cue" aria-label="Листайте вниз">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+  </a>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee">
+  <div class="marquee-track">
+    <span>Moncler</span><span>Saint Laurent</span><span>Balenciaga</span><span>Bottega Veneta</span><span>Loro Piana</span><span>Stone Island</span><span>Gucci</span><span>Amiri</span>
+    <span>Moncler</span><span>Saint Laurent</span><span>Balenciaga</span><span>Bottega Veneta</span><span>Loro Piana</span><span>Stone Island</span><span>Gucci</span><span>Amiri</span>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<section class="section" id="cats">
+  <div class="container">
+    <div class="section-head center" data-reveal>
+      <span class="eyebrow center">Категории</span>
+      <h2>Выберите направление</h2>
+      <p>От верхней одежды до аксессуаров — всё оригинальное и с проверкой подлинности.</p>
+    </div>
+    <div class="cat-grid">
+      <a class="cat-card" href="catalog.html?cat=outer">
+        <img src="https://images.unsplash.com/photo-1539533018447-63fcce2678e3?auto=format&fit=crop&w=600&q=80" alt="">
+        <div class="cat-card-body"><b>Верхняя одежда</b><span>Смотреть <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+      </a>
+      <a class="cat-card" href="catalog.html?cat=shoes">
+        <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=600&q=80" alt="">
+        <div class="cat-card-body"><b>Обувь</b><span>Смотреть <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+      </a>
+      <a class="cat-card" href="catalog.html?cat=bags">
+        <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80" alt="">
+        <div class="cat-card-body"><b>Сумки</b><span>Смотреть <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+      </a>
+      <a class="cat-card" href="catalog.html?cat=acc">
+        <img src="https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=600&q=80" alt="">
+        <div class="cat-card-body"><b>Аксессуары</b><span>Смотреть <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- HITS -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="section-head center" data-reveal>
+      <span class="eyebrow center">Выбор недели</span>
+      <h2>Хиты и новинки</h2>
+      <p>Самые востребованные позиции. Наличие уточняем при заявке.</p>
+    </div>
+    <div class="prod-grid" id="hits"></div>
+    <div class="center" style="margin-top:48px">
+      <a href="catalog.html" class="btn btn-outline btn-lg">Весь каталог</a>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section-tight" style="background:var(--cream-deep)">
+  <div class="container">
+    <div class="feature-grid" id="features"></div>
+  </div>
+</section>
+
+<!-- EDITORIAL SPLIT -->
+<section class="section">
+  <div class="container">
+    <div class="split">
+      <div class="split-media" data-reveal>
+        <img src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=800&q=80" alt="Бутик">
+      </div>
+      <div class="split-body" data-reveal data-reveal-delay="1">
+        <span class="eyebrow">Как мы работаем</span>
+        <h2>Оригинал, проверка и честная цена</h2>
+        <p>Вы выбираете вещь, мы находим её у проверенных поставщиков за рубежом, проверяем подлинность и привозим. Никаких реплик и серых схем.</p>
+        <ul class="split-list" id="steps"></ul>
+        <a href="logistics.html" class="btn btn-dark">Подробнее о доставке</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="section" style="background:var(--cream-deep)">
+  <div class="container">
+    <div class="section-head center" data-reveal>
+      <span class="eyebrow center">Отзывы</span>
+      <h2>Нам доверяют</h2>
+    </div>
+    <div class="review-grid" id="reviews"></div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section">
+  <div class="container">
+    <div class="section-head center" data-reveal>
+      <span class="eyebrow center">Вопросы</span>
+      <h2>Частые вопросы</h2>
+    </div>
+    <div class="faq" id="faq"></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="cta" data-reveal>
+      <span class="eyebrow center" style="color:var(--gold)">Рассылка</span>
+      <h2>Новинки и закрытые предложения</h2>
+      <p>Подпишитесь — будем присылать поступления, скидки и подборки первыми. Без спама.</p>
+      <form class="subscribe" data-thanks>
+        <input type="email" required placeholder="Ваш e-mail">
+        <button class="btn btn-gold btn-lg" type="submit">Подписаться</button>
+      </form>
+      <div class="form-msg" style="max-width:480px;margin:14px auto 0"></div>
+    </div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+<div id="site-overlays"></div>
+
+<script src="app.js"></script>
+<script src="partials.js"></script>
+<script>
+  renderHits('#hits', 8);
+
+  // фичи
+  const FEATURES = [
+    ['shield','Только оригинал','Проверяем подлинность каждой вещи перед отправкой.'],
+    ['globe','Доставка из-за рубежа','Европа, Азия, США — привезём под заказ.'],
+    ['tag','Честная цена','Фиксируем стоимость на момент заявки, без скрытых наценок.'],
+    ['chat','Личный менеджер','Ведём в Telegram от заявки до вручения.'],
+  ];
+  document.getElementById('features').innerHTML = FEATURES.map(f=>`
+    <div class="feature"><div class="feature-ic">${ICON[f[0]]}</div><h3>${f[1]}</h3><p>${f[2]}</p></div>`).join('');
+
+  // шаги
+  const STEPS = ['Выбираете вещь в каталоге или присылаете ссылку','Менеджер уточняет наличие и считает доставку','Оплата и выкуп у поставщика','Проверка подлинности и отправка вам'];
+  document.getElementById('steps').innerHTML = STEPS.map(s=>`<li>${ICON.check}<span>${s}</span></li>`).join('');
+
+  // отзывы
+  const REVIEWS = [
+    ['А','Анна, Москва','Пуховик Moncler','Заказывала пуховик — пришёл оригинал с бирками, всё как обещали. Менеджер на связи 24/7.'],
+    ['Д','Дмитрий, СПб','Кроссовки','Долго боялся заказывать люкс онлайн. Здесь всё честно: проверка, трек, доставка ровно в срок.'],
+    ['М','Марина, Казань','Сумка Bottega','Сумка мечты по цене ниже, чем в РФ-бутиках. Упаковано идеально. Вернусь ещё.'],
+  ];
+  document.getElementById('reviews').innerHTML = REVIEWS.map(r=>`
+    <div class="review">
+      <div class="stars">${ICON.star.repeat(5)}</div>
+      <p>«${r[3]}»</p>
+      <div class="review-author"><div class="review-ava">${r[0]}</div><div><b>${r[1]}</b><span>${r[2]}</span></div></div>
+    </div>`).join('');
+
+  // FAQ
+  const FAQ = [
+    ['Это точно оригинал?','Да. Мы работаем только с оригинальной продукцией и проверяем подлинность каждой вещи перед отправкой. Реплик не продаём.'],
+    ['Сколько идёт доставка?','В среднем 10–18 дней в зависимости от страны и логистики. Точный срок менеджер называет при оформлении.'],
+    ['Как происходит оплата?','Классической онлайн-оплаты на сайте нет. Вы оставляете заявку, менеджер связывается, согласовывает вещь, цену и удобный способ оплаты.'],
+    ['Можно ли вернуть товар?','Условия возврата обсуждаются индивидуально — напишите в поддержку, поможем с обменом или возвратом.'],
+  ];
+  document.getElementById('faq').innerHTML = FAQ.map(f=>`
+    <div class="faq-item">
+      <button class="faq-q">${f[0]}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 5v14M5 12h14"/></svg></button>
+      <div class="faq-a"><p>${f[1]}</p></div>
+    </div>`).join('');
+
+  // FAQ вставлен динамически — навешиваем аккордеон и запускаем reveal
+  $$('#faq .faq-item').forEach(item=>{
+    const q=$('.faq-q',item), a=$('.faq-a',item);
+    q.addEventListener('click',()=>{
+      const open=item.classList.toggle('open');
+      a.style.maxHeight=open?a.scrollHeight+'px':0;
+      $$('#faq .faq-item').forEach(o=>{if(o!==item){o.classList.remove('open');$('.faq-a',o).style.maxHeight=0;}});
+    });
+  });
+  revealScan(document);
+</script>
+</body>
+</html>

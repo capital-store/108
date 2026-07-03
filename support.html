@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Поддержка — Capital Store MSK</title>
+<meta name="description" content="Свяжитесь с поддержкой Capital Store MSK: подбор размера, статус заказа, вопросы по доставке.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="site-header" data-page="support"></div>
+
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow">Поддержка</span>
+    <h1>Мы на связи</h1>
+    <p>Подберём размер, расскажем статус заказа, поможем с выбором и возвратом. Ответим в течение рабочего дня.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="split" style="align-items:start">
+      <!-- Форма -->
+      <div class="panel" data-reveal>
+        <h2 style="font-size:1.8rem;margin-bottom:8px">Написать нам</h2>
+        <p style="margin-bottom:26px">Опишите вопрос — менеджер свяжется удобным для вас способом.</p>
+        <form class="form" id="supportForm">
+          <div class="field-row">
+            <div class="field"><label>Имя</label><input name="name" required placeholder="Ваше имя"></div>
+            <div class="field"><label>Телефон</label><input name="phone" required placeholder="+7 ___ ___ __ __"></div>
+          </div>
+          <div class="field"><label>Telegram или e-mail</label><input name="email" placeholder="@username или почта"></div>
+          <div class="field"><label>Тема</label>
+            <select name="delivery">
+              <option>Вопрос по товару</option>
+              <option>Подбор размера</option>
+              <option>Статус заказа</option>
+              <option>Доставка и оплата</option>
+              <option>Возврат или обмен</option>
+              <option>Другое</option>
+            </select>
+          </div>
+          <div class="field"><label>Сообщение</label><textarea name="comment" required placeholder="Чем помочь?"></textarea></div>
+          <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <div class="form-msg" id="supMsg"></div>
+          <button type="submit" class="btn btn-dark btn-block btn-lg" id="supBtn">Отправить</button>
+          <p class="form-note">Нажимая кнопку, вы соглашаетесь с обработкой персональных данных.</p>
+        </form>
+      </div>
+
+      <!-- Контакты -->
+      <div data-reveal data-reveal-delay="1">
+        <span class="eyebrow">Быстрая связь</span>
+        <h2 style="font-size:1.8rem;margin-bottom:22px">Пишите в мессенджеры</h2>
+        <div class="links" id="supLinks"></div>
+        <div class="panel" style="margin-top:24px">
+          <h3 style="margin-bottom:14px">Режим работы</h3>
+          <div class="calc-line" style="border-color:var(--line-soft)"><span style="color:var(--muted)">Пн–Пт</span><span style="font-weight:600">10:00 — 20:00</span></div>
+          <div class="calc-line" style="border-color:var(--line-soft)"><span style="color:var(--muted)">Сб–Вс</span><span style="font-weight:600">11:00 — 18:00</span></div>
+          <div class="calc-line" style="border:none"><span style="color:var(--muted)">Заявки в чатах</span><span style="font-weight:600">круглосуточно</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+<div id="site-overlays"></div>
+
+<script src="app.js"></script>
+<script src="partials.js"></script>
+<script>
+  // ссылки на мессенджеры
+  const LINKS = [
+    ['tg','Telegram','Ответим за пару минут', CONTACTS.tg],
+    ['wa','WhatsApp','Чат с менеджером', CONTACTS.wa],
+    ['mail','E-mail','hello@capitalstoremsk.ru', CONTACTS.mail],
+  ];
+  document.getElementById('supLinks').innerHTML = LINKS.map(l=>`
+    <a class="link-row" href="${l[3]}" target="_blank" rel="noopener">
+      <span class="link-ic">${ICON[l[0]]}</span>
+      <span><b>${l[1]}</b><span>${l[2]}</span></span>
+      <span class="link-go">${ICON.arrow}</span>
+    </a>`).join('');
+
+  // отправка формы поддержки в /api/order (или демо-«спасибо»)
+  const form = document.getElementById('supportForm');
+  form.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const msg = document.getElementById('supMsg'), btn = document.getElementById('supBtn');
+    const fd = new FormData(form);
+    if(fd.get('website')) return; // honeypot
+    const payload = {
+      name:fd.get('name'), phone:fd.get('phone'), email:fd.get('email'),
+      delivery:'Поддержка: '+fd.get('delivery'), comment:fd.get('comment'),
+      item:'Обращение в поддержку', cart:null, website:''
+    };
+    btn.disabled=true; btn.textContent='Отправляем…';
+    try{
+      const r = await fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      if(!r.ok) throw new Error();
+      msg.className='form-msg ok'; msg.textContent='Сообщение отправлено. Менеджер скоро ответит.';
+      form.reset();
+    }catch(_){
+      msg.className='form-msg ok'; msg.textContent='Спасибо! Обращение принято. (Демо-режим — подключите Telegram в .env.)';
+      form.reset();
+    }finally{ btn.disabled=false; btn.textContent='Отправить'; }
+  });
+</script>
+</body>
+</html>

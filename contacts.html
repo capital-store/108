@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Контакты — Capital Store MSK</title>
+<meta name="description" content="Все контакты Capital Store MSK: Telegram, WhatsApp, Instagram, e-mail и телефон.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="site-header" data-page="contacts"></div>
+
+<section class="section">
+  <div class="container">
+    <div class="linkbio" data-reveal>
+      <div class="linkbio-ava">CS</div>
+      <span class="eyebrow center">Capital Store MSK</span>
+      <h1>Свяжитесь с нами</h1>
+      <p>Выберите удобный канал — ответим и поможем с заказом.</p>
+      <div class="links" id="links"></div>
+    </div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+<div id="site-overlays"></div>
+
+<script src="app.js"></script>
+<script src="partials.js"></script>
+<script>
+  const LINKS = [
+    ['tg','Telegram','@capitalstoremsk — заявки и вопросы', CONTACTS.tg],
+    ['wa','WhatsApp','Чат с менеджером', CONTACTS.wa],
+    ['ig','Instagram','Новинки и образы', CONTACTS.ig],
+    ['mail','E-mail','hello@capitalstoremsk.ru', CONTACTS.mail],
+    ['pin','Москва','Доставка по России и в СНГ', 'logistics.html'],
+  ];
+  document.getElementById('links').innerHTML = LINKS.map(l=>`
+    <a class="link-row" href="${l[3]}" ${l[3].startsWith('http')?'target="_blank" rel="noopener"':''}>
+      <span class="link-ic">${ICON[l[0]]}</span>
+      <span><b>${l[1]}</b><span>${l[2]}</span></span>
+      <span class="link-go">${ICON.arrow}</span>
+    </a>`).join('');
+  revealScan(document);
+</script>
+</body>
+</html>

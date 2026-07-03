@@ -1,0 +1,27 @@
+# Render Blueprint — авто-настройка веб-сервиса.
+# В панели Render: New → Blueprint → выбрать этот репозиторий.
+# Секреты (sync:false) задаются вручную в Dashboard → Environment.
+services:
+  - type: web
+    name: capital-store-msk
+    runtime: node
+    plan: free
+    region: frankfurt          # ближе к РФ/Европе; можно oregon
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: VK_API_VERSION
+        value: "5.199"
+      # --- секреты: задать значения в панели Render ---
+      - key: VK_TOKEN
+        sync: false
+      - key: VK_GROUP_ID
+        sync: false
+      - key: TG_BOT_TOKEN
+        sync: false
+      - key: TG_CHAT_ID
+        sync: false

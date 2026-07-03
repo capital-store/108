@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Новости — Capital Store MSK</title>
+<meta name="description" content="Новости, поступления и гайды Capital Store MSK: тренды, подбор размеров и уход за вещами.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="site-header" data-page="blog"></div>
+
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow">Журнал</span>
+    <h1>Новости и гайды</h1>
+    <p>Поступления, тренды сезона, советы по подбору размера и уходу за вещами.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="blog-grid" id="posts"></div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="cta" data-reveal>
+      <span class="eyebrow center" style="color:var(--gold)">Рассылка</span>
+      <h2>Не пропустите поступления</h2>
+      <p>Подпишитесь на дайджест — раз в неделю, только по делу.</p>
+      <form class="subscribe" data-thanks>
+        <input type="email" required placeholder="Ваш e-mail">
+        <button class="btn btn-gold btn-lg" type="submit">Подписаться</button>
+      </form>
+      <div class="form-msg" style="max-width:480px;margin:14px auto 0"></div>
+    </div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+<div id="site-overlays"></div>
+
+<script src="app.js"></script>
+<script src="partials.js"></script>
+<script>
+  const IMG = (s)=>`https://images.unsplash.com/${s}?auto=format&fit=crop&w=700&q=80`;
+  const POSTS = [
+    ['Тренды','Что носят этой осенью','Разбираем ключевые силуэты и цвета сезона — и что из этого можно заказать у нас.','4 июля 2026','photo-1490481651871-ab68de25d43d'],
+    ['Гид','Как выбрать размер люксовой вещи','Размерные сетки брендов отличаются. Показываем, как снять мерки и не ошибиться.','28 июня 2026','photo-1483985988355-763728e1935b'],
+    ['Уход','Хранение и уход за пуховиком','Простые правила, которые продлят жизнь дорогой верхней одежде.','20 июня 2026','photo-1544923246-77307dd654cb'],
+    ['Поступления','Новая партия обуви','Common Projects, кроссовки и лоферы — уже доступны под заказ.','12 июня 2026','photo-1595950653106-6c9ebd614d3a'],
+    ['Бренды','Почему Loro Piana стоит своих денег','Кашемир, из которого шьют вещи на десятилетия. Коротко о философии бренда.','5 июня 2026','photo-1620799140408-edc6dcb6d633'],
+    ['Гид','Оригинал против реплики','На что смотреть, чтобы не купить подделку — и почему мы проверяем каждую вещь.','29 мая 2026','photo-1441984904996-e0b6ba687e04'],
+  ];
+  document.getElementById('posts').innerHTML = POSTS.map(p=>`
+    <article class="post">
+      <div class="post-media"><img src="${IMG(p[4])}" alt="${p[1]}" loading="lazy"></div>
+      <div class="post-body">
+        <span class="post-cat">${p[0]}</span>
+        <h3>${p[1]}</h3>
+        <p>${p[2]}</p>
+        <span class="post-date">${p[3]}</span>
+      </div>
+    </article>`).join('');
+  revealScan(document);
+</script>
+</body>
+</html>

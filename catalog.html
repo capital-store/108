@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Наличие — Capital Store MSK</title>
+<meta name="description" content="Каталог товаров в наличии: верхняя одежда, обувь, сумки, аксессуары от люксовых брендов.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="site-header" data-page="catalog"></div>
+
+<section class="page-hero">
+  <div class="container">
+    <h1>Наличие</h1>
+    <p>Товары в наличии и под заказ. Пополняем ассортимент каждую неделю.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="chips" id="chips">
+      <button class="chip active" data-filter="all">Все</button>
+      <button class="chip" data-filter="outer">Верхняя одежда</button>
+      <button class="chip" data-filter="pants">Брюки и шорты</button>
+      <button class="chip" data-filter="hoodie">Худи и свитшоты</button>
+      <button class="chip" data-filter="tshirt">Футболки</button>
+      <button class="chip" data-filter="bags">Рюкзаки и сумки</button>
+      <button class="chip" data-filter="shoes">Обувь</button>
+      <button class="chip" data-filter="acc">Аксессуары</button>
+    </div>
+    <div class="prod-grid" id="grid"></div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+<div id="site-overlays"></div>
+
+<script src="app.js"></script>
+<script src="partials.js"></script>
+<script>renderCatalog("#grid", "#chips");</script>
+</body>
+</html>
