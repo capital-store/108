@@ -58,18 +58,27 @@ let cache = { at:0, data:null };
 const CACHE_MS = 5 * 60 * 1000;
 
 async function handleProducts(res) {
-  if (!VK_TOKEN || !VK_GROUP_ID) return json(res, 200, []); // фронт покажет демо
+  if (!VK_TOKEN || !VK_GROUP_ID) return json(res, 200, []); // фронт покажет демо/снапшот
   if (cache.data && Date.now() - cache.at < CACHE_MS) return json(res, 200, cache.data);
 
   try {
     const owner = -Math.abs(Number(VK_GROUP_ID)); // группа → отрицательный owner_id
-    const api = `https://api.vk.com/method/market.get?owner_id=${owner}&count=100&extended=1`
-      + `&access_token=${VK_TOKEN}&v=${VK_API_VERSION}`;
-    const raw = await httpsGetJSON(api);
-    if (raw.error) throw new Error(raw.error.error_msg || 'VK error');
-
-    const items = (raw.response && raw.response.items) || [];
-    const products = items.map(normalizeVk);
+    const items = [];
+    // постранично забираем весь каталог (VK отдаёт максимум 200 за раз)
+    for (let offset = 0; offset < 2000; offset += 200) {
+      const api = `https://api.vk.com/method/market.get?owner_id=${owner}`
+        + `&count=200&offset=${offset}&extended=1`
+        + `&access_token=${VK_TOKEN}&v=${VK_API_VERSION}`;
+      const raw = await httpsGetJSON(api);
+      if (raw.error) throw new Error(raw.error.error_msg || 'VK error');
+      const page = (raw.response && raw.response.items) || [];
+      items.push(...page);
+      const total = (raw.response && raw.response.count) || page.length;
+      if (items.length >= total || page.length < 200) break;
+    }
+    const products = items
+      .filter(it => it.availability === 0 || it.availability == null)
+      .map(normalizeVk);
     cache = { at: Date.now(), data: products };
     json(res, 200, products);
   } catch (err) {
@@ -78,38 +87,68 @@ async function handleProducts(res) {
   }
 }
 
+// Бренды для распознавания (порядок важен: сначала многословные)
+const VK_BRANDS = [
+  'Maison Mihara Yasuhiro','1017 ALYX','Rick Owens','Stone Island','Raf Simons',
+  'Louis Vuitton','Bottega Veneta','Loro Piana','New Balance','Off-White','Off White','Palm Angels',
+  'Fear of God','Chrome Hearts','Ralph Lauren','C.P. Company','CP Company','Acne Studios',
+  'Represent','Corteiz','Trapstar','Balenciaga','Burberry','Champion','Goyard','Celine',
+  'Supreme','Gucci','Prada','Moncler','Amiri','Adidas','Nike','Jordan','Dior','Hermes',
+  'Loewe','Lacoste','Carhartt','Arcteryx','Vetements','Essentials','Yeezy','Zegna',
+  'Brunello','Diesel','Versace','Fendi','Givenchy','Valentino','Marni','Kenzo','Y-3',
+  'Denim Tears','Sp5der','Puma','Asics','Salomon','New Era','Polo','Alyx','Pinko','DJI',
+  'Kith','Ami Paris','Ami',
+];
+
+// Чистим название: отрезаем «| МОСКВА | 1000+ отзывов» и лишние пробелы
+function cleanName(title) {
+  return String(title || 'Товар')
+    .split('|')[0]
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s\-–|]+|[\s\-–|]+$/g, '')
+    .trim() || 'Товар';
+}
+
+function findBrand(title) {
+  const low = String(title || '').toLowerCase();
+  for (const b of VK_BRANDS) if (low.includes(b.toLowerCase())) return b;
+  return '';
+}
+
 function normalizeVk(it) {
   const price = it.price ? Math.round(Number(it.price.amount) / 100) : 0;
   const old = it.price && it.price.old_amount ? Math.round(Number(it.price.old_amount) / 100) : 0;
+  // выбираем самое крупное фото у каждой картинки
   const images = (it.photos || []).map(p => {
-    const sizes = p.sizes || [];
+    const sizes = (p.sizes || []).slice().sort((a, b) => (a.width || 0) - (b.width || 0));
     const best = sizes[sizes.length - 1];
     return best ? best.url : '';
   }).filter(Boolean);
-  const img = images[0] || (it.thumb_photo || '');
+  const img = images[0] || it.thumb_photo || '';
+  const title = it.title || '';
   return {
     id: String(it.id),
-    name: it.title || 'Товар',
-    brand: '',
+    name: cleanName(title),
+    brand: findBrand(title),
     price, old,
-    cat: guessCat(it.title || ''),
+    cat: guessCat(title),
     img,
     images: images.length ? images : [img].filter(Boolean),
-    desc: (it.description || '').slice(0, 600),
+    desc: (it.description || '').replace(/\s+/g, ' ').trim().slice(0, 600),
     sizes: [],
     tag: old ? 'Sale' : '',
   };
 }
 
-// Грубое угадывание категории по названию. При желании — уточнить в VK.
+// Категория по типу вещи в названии (VK-категория у товаров не заполнена)
 function guessCat(title) {
-  const t = title.toLowerCase();
-  if (/(куртк|пуховик|пальт|парк|плащ|ветровк|бомбер|дублён|шуб)/.test(t)) return 'outer';
-  if (/(брюк|штан|джинс|шорт|карго|легинс)/.test(t)) return 'pants';
-  if (/(худи|свитшот|свитер|кофт|толстовк|джемпер|кардиг)/.test(t)) return 'hoodie';
-  if (/(футбол|майк|поло|лонгслив|t-shirt|tee)/.test(t)) return 'tshirt';
-  if (/(рюкзак|сумк|шоппер|тоут|барсет|клатч|bag)/.test(t)) return 'bags';
-  if (/(кроссов|кед|ботин|туфл|сапог|лофер|слайд|обув|sneaker|shoe|boot)/.test(t)) return 'shoes';
+  const t = String(title || '').toLowerCase();
+  if (/кроссов|кед|ботин|туфл|сапог|лофер|слайд|мюл|обувь|sneaker|shoe|boot/.test(t)) return 'shoes';
+  if (/штаны|шорты|джинс|брюки|легинс|карго/.test(t)) return 'pants';
+  if (/худи|свитшот|свитер|зип|кофт|толстовк|джемпер|кардиг|hoodie|zip/.test(t)) return 'hoodie';
+  if (/футбол|лонгслив|поло|майк|tee|t-shirt/.test(t)) return 'tshirt';
+  if (/куртк|пуховик|овершот|жилет|плащ|парк|ветровк|бомбер|пиджак|дублён|шуб|пальт|анорак/.test(t)) return 'outer';
+  if (/рюкзак|сумк|шоппер|тоут|клатч|барсет|goyard|кошел|мессендж|bag|картхолдер/.test(t)) return 'bags';
   return 'acc';
 }
 
@@ -201,7 +240,13 @@ function serveStatic(pathname, res) {
       return res.end('<h1>404</h1><p>Страница не найдена. <a href="/">На главную</a></p>');
     }
     const ext = path.extname(filePath).toLowerCase();
-    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+    // html/js/css/json — всегда ревалидировать (свежий код у посетителей);
+    // картинки/шрифты — кэшировать надолго
+    const longCache = ['.png','.jpg','.jpeg','.webp','.svg','.ico','.woff2'].includes(ext);
+    res.writeHead(200, {
+      'Content-Type': MIME[ext] || 'application/octet-stream',
+      'Cache-Control': longCache ? 'public, max-age=604800' : 'no-cache',
+    });
     res.end(buf);
   });
 }

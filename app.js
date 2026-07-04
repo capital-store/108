@@ -91,13 +91,23 @@ const CATEGORIES = {
 let PRODUCTS = [];
 async function loadProducts() {
   if (PRODUCTS.length) return PRODUCTS;
+  // 1) живой бэкенд (VK через сервер)
   try {
     const r = await fetch('/api/products');
     if (r.ok) {
       const data = await r.json();
       if (Array.isArray(data) && data.length) { PRODUCTS = data; return PRODUCTS; }
     }
-  } catch (_) { /* backend недоступен — идём в демо */ }
+  } catch (_) { /* backend недоступен */ }
+  // 2) снапшот реального каталога VK (для статик-хостинга/превью)
+  try {
+    const r = await fetch('products.json');
+    if (r.ok) {
+      const data = await r.json();
+      if (Array.isArray(data) && data.length) { PRODUCTS = data; return PRODUCTS; }
+    }
+  } catch (_) { /* нет снапшота */ }
+  // 3) демо-каталог
   PRODUCTS = FALLBACK_PRODUCTS;
   return PRODUCTS;
 }
@@ -171,8 +181,8 @@ async function renderCatalog(gridSel, chipsSel){
   grid.innerHTML = '<p style="color:var(--muted)">Загружаем каталог…</p>';
   await loadProducts();
   let filter = qs('cat') || 'all';
-  const onlyNew = qs('new'); // «Поступления» — только новинки/хиты
-  const base = () => onlyNew ? PRODUCTS.filter(p=>/хит|new|нов/i.test(p.tag)) : PRODUCTS;
+  const onlyNew = qs('new'); // «Поступления» — свежие позиции (VK отдаёт от новых к старым)
+  const base = () => onlyNew ? PRODUCTS.slice(0, 40) : PRODUCTS;
 
   if(onlyNew){
     const h = $('.page-hero h1'), sub = $('.page-hero p');
