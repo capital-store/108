@@ -45,29 +45,40 @@
 </div>
 
 <!-- CATEGORIES -->
-<section class="section" id="cats">
+<section class="section section-dark" id="cats">
   <div class="container">
     <div class="section-head center" data-reveal>
-      <span class="eyebrow center">Категории</span>
-      <h2>Выберите направление</h2>
-      <p>От верхней одежды до аксессуаров — всё оригинальное и с проверкой подлинности.</p>
+      <h2>Категории одежды</h2>
+      <p>Пополняем наличие каждую неделю!</p>
     </div>
-    <div class="cat-grid">
-      <a class="cat-card" href="catalog.html?cat=outer">
-        <img src="https://images.unsplash.com/photo-1539533018447-63fcce2678e3?auto=format&fit=crop&w=600&q=80" alt="">
-        <div class="cat-card-body"><b>Верхняя одежда</b><span>Смотреть <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+    <div class="cat-ref-grid">
+      <a class="cat-ref" href="catalog.html?cat=outer" data-reveal>
+        <img src="https://thb.tildacdn.com/tild3135-3333-4461-b737-613630656465/-/resize/640x/hf_20260512_093749_1.png" alt="Верхняя одежда" loading="lazy">
+        <span>Верхняя одежда</span>
       </a>
-      <a class="cat-card" href="catalog.html?cat=shoes">
-        <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=600&q=80" alt="">
-        <div class="cat-card-body"><b>Обувь</b><span>Смотреть <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+      <a class="cat-ref" href="catalog.html?cat=pants" data-reveal data-reveal-delay="1">
+        <img src="https://thb.tildacdn.com/tild3764-3534-4463-b235-396362616631/-/resize/640x/hf_20260515_061855_a.png" alt="Брюки и шорты" loading="lazy">
+        <span>Брюки и шорты</span>
       </a>
-      <a class="cat-card" href="catalog.html?cat=bags">
-        <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80" alt="">
-        <div class="cat-card-body"><b>Сумки</b><span>Смотреть <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+      <a class="cat-ref" href="catalog.html?cat=hoodie" data-reveal>
+        <img src="https://thb.tildacdn.com/tild6435-3433-4331-a630-336266303438/-/resize/640x/hf_20260515_062827_d.png" alt="Худи и свитшоты" loading="lazy">
+        <span>Худи и свитшоты</span>
       </a>
-      <a class="cat-card" href="catalog.html?cat=acc">
-        <img src="https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=600&q=80" alt="">
-        <div class="cat-card-body"><b>Аксессуары</b><span>Смотреть <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+      <a class="cat-ref" href="catalog.html?cat=tshirt" data-reveal data-reveal-delay="1">
+        <img src="https://thb.tildacdn.com/tild3966-3439-4035-a538-323738333235/-/resize/640x/hf_20260515_063434_e.png" alt="Футболки" loading="lazy">
+        <span>Футболки</span>
+      </a>
+      <a class="cat-ref" href="catalog.html?cat=bags" data-reveal>
+        <img src="https://thb.tildacdn.com/tild3633-6631-4566-b265-663566623735/-/resize/640x/hf_20260515_063455_b.png" alt="Рюкзаки и сумки" loading="lazy">
+        <span>Рюкзаки и сумки</span>
+      </a>
+      <a class="cat-ref" href="catalog.html?cat=shoes" data-reveal data-reveal-delay="1">
+        <img src="https://thb.tildacdn.com/tild6331-6263-4335-a636-643739636664/-/resize/640x/hf_20260515_063917_f.png" alt="Обувь" loading="lazy">
+        <span>Обувь</span>
+      </a>
+      <a class="cat-ref" href="catalog.html?cat=acc" data-reveal>
+        <img src="https://thb.tildacdn.com/tild3263-6134-4263-a431-663063616662/-/resize/640x/image.png" alt="Аксессуары" loading="lazy">
+        <span>Аксессуары</span>
       </a>
     </div>
   </div>
@@ -77,9 +88,9 @@
 <section class="section" style="padding-top:0">
   <div class="container">
     <div class="section-head center" data-reveal>
-      <span class="eyebrow center">Выбор недели</span>
+      <span class="eyebrow center">Наши хиты</span>
       <h2>Хиты и новинки</h2>
-      <p>Самые востребованные позиции. Наличие уточняем при заявке.</p>
+      <p>Самые востребованные позиции — всё в наличии в Москве.</p>
     </div>
     <div class="prod-grid" id="hits"></div>
     <div class="center" style="margin-top:48px">
@@ -88,26 +99,53 @@
   </div>
 </section>
 
-<!-- FEATURES -->
-<section class="section-tight" style="background:var(--cream-deep)">
+<!-- EXCLUSIVE -->
+<section class="section section-dark">
   <div class="container">
-    <div class="feature-grid" id="features"></div>
+    <div class="section-head center" data-reveal>
+      <h2>Эксклюзивная одежда со всего мира</h2>
+      <p>Продажа оригинальных товаров известных брендов с обеспечением высокого качества и подлинности товаров.</p>
+    </div>
+    <div class="feature-rows">
+      <div class="feature-row" data-reveal>
+        <div class="feature-row-media"><img src="https://thb.tildacdn.com/tild3965-3336-4462-b630-343236386561/-/resize/840x/222.webp" alt="Доставка из-за рубежа" loading="lazy"></div>
+        <div class="feature-row-body">
+          <h3>Доставка одежды из-за рубежа</h3>
+          <p>Организуем доставку люксовой одежды из любой страны мира прямо к вашему порогу.</p>
+        </div>
+      </div>
+      <div class="feature-row" data-reveal>
+        <div class="feature-row-media"><img src="https://thb.tildacdn.com/tild3434-3266-4133-b036-626166663933/-/resize/840x/hf_20260522_114953_d.jpeg" alt="Подбор по брендам" loading="lazy"></div>
+        <div class="feature-row-body">
+          <h3>Подбор по брендам</h3>
+          <p>Помогаем найти и приобрести одежду от известных люксовых брендов.</p>
+        </div>
+      </div>
+      <div class="feature-row" data-reveal>
+        <div class="feature-row-media"><img src="https://thb.tildacdn.com/tild3538-6664-4132-b539-313462613835/-/resize/840x/hf_20260523_123728_0.png" alt="Проверка подлинности" loading="lazy"></div>
+        <div class="feature-row-body">
+          <h3>Проверка подлинности</h3>
+          <p>Гарантируем подлинность каждого товара перед отправкой.</p>
+        </div>
+      </div>
+    </div>
+    <div class="center" style="margin-top:48px">
+      <a href="logistics.html" class="btn btn-cream btn-lg hero-cta">Подробнее</a>
+    </div>
   </div>
 </section>
 
-<!-- EDITORIAL SPLIT -->
-<section class="section">
+<!-- ABOUT -->
+<section class="section section-dark" style="padding-top:0">
   <div class="container">
-    <div class="split">
-      <div class="split-media" data-reveal>
-        <img src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=800&q=80" alt="Бутик">
+    <div class="about-split">
+      <div class="about-body" data-reveal>
+        <h2>О нас</h2>
+        <p>Мы любим то, чем занимаемся, и к каждому заказу относимся как к своему — поэтому гарантируем быстрые сроки доставки, качественную поддержку и лучшие цены.</p>
+        <a href="contacts.html" class="btn btn-ghost btn-lg" style="margin-top:12px">Связаться с нами</a>
       </div>
-      <div class="split-body" data-reveal data-reveal-delay="1">
-        <span class="eyebrow">Как мы работаем</span>
-        <h2>Оригинал, проверка и честная цена</h2>
-        <p>Вы выбираете вещь, мы находим её у проверенных поставщиков за рубежом, проверяем подлинность и привозим. Никаких реплик и серых схем.</p>
-        <ul class="split-list" id="steps"></ul>
-        <a href="logistics.html" class="btn btn-dark">Подробнее о доставке</a>
+      <div class="about-media" data-reveal data-reveal-delay="1">
+        <img src="https://thb.tildacdn.com/tild3632-3561-4961-b566-636633633937/-/resize/700x/1111.jpg" alt="Capital Store MSK" loading="lazy">
       </div>
     </div>
   </div>
@@ -158,20 +196,6 @@
 <script src="partials.js"></script>
 <script>
   renderHits('#hits', 8);
-
-  // фичи
-  const FEATURES = [
-    ['shield','Только оригинал','Проверяем подлинность каждой вещи перед отправкой.'],
-    ['globe','Доставка из-за рубежа','Европа, Азия, США — привезём под заказ.'],
-    ['tag','Честная цена','Фиксируем стоимость на момент заявки, без скрытых наценок.'],
-    ['chat','Личный менеджер','Ведём в Telegram от заявки до вручения.'],
-  ];
-  document.getElementById('features').innerHTML = FEATURES.map(f=>`
-    <div class="feature"><div class="feature-ic">${ICON[f[0]]}</div><h3>${f[1]}</h3><p>${f[2]}</p></div>`).join('');
-
-  // шаги
-  const STEPS = ['Выбираете вещь в каталоге или присылаете ссылку','Менеджер уточняет наличие и считает доставку','Оплата и выкуп у поставщика','Проверка подлинности и отправка вам'];
-  document.getElementById('steps').innerHTML = STEPS.map(s=>`<li>${ICON.check}<span>${s}</span></li>`).join('');
 
   // отзывы
   const REVIEWS = [

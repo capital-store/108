@@ -240,6 +240,38 @@ p{color:var(--muted)}
 .cat-card-body span svg{width:15px;height:15px;transition:transform .3s var(--ease)}
 .cat-card:hover .cat-card-body span svg{transform:translateX(4px)}
 
+/* ---------- тёмная секция (как на capitalstoremsk.ru) ---------- */
+.section-dark{background:var(--black);color:var(--cream)}
+.section-dark h2{color:#fff}
+.section-dark h3{color:#fff}
+.section-dark .eyebrow{color:var(--gold)}
+.section-dark .section-head p{color:rgba(246,241,232,.58)}
+
+/* категории — крупные тайлы с подписью по центру */
+.cat-ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.cat-ref{position:relative;aspect-ratio:16/9;border-radius:10px;overflow:hidden;display:grid;place-items:center}
+.cat-ref img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  filter:brightness(.68);transition:transform .8s var(--ease),filter .4s}
+.cat-ref:hover img{transform:scale(1.05);filter:brightness(.85)}
+.cat-ref span{position:relative;z-index:2;font-family:var(--serif);font-size:1.85rem;font-weight:600;
+  color:#fff;letter-spacing:.01em;text-shadow:0 2px 26px rgba(0,0,0,.75)}
+
+/* «Эксклюзивная одежда» — ряды фото + текст */
+.feature-rows{display:flex;flex-direction:column;gap:44px;max-width:1000px;margin:0 auto}
+.feature-row{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.feature-row-media{border-radius:10px;overflow:hidden;aspect-ratio:16/10;box-shadow:var(--shadow)}
+.feature-row-media img{width:100%;height:100%;object-fit:cover;transition:transform .8s var(--ease)}
+.feature-row:hover .feature-row-media img{transform:scale(1.04)}
+.feature-row-body h3{font-size:1.7rem;margin-bottom:14px}
+.feature-row-body p{color:rgba(246,241,232,.62);font-size:1.06rem;max-width:400px}
+
+/* «О нас» */
+.about-split{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.about-body h2{margin-bottom:22px}
+.about-body p{color:rgba(246,241,232,.66);font-size:1.12rem;max-width:460px}
+.about-media{border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+.about-media img{width:100%;height:100%;object-fit:cover;display:block}
+
 /* ============================================================
    PRODUCT GRID + CARD
    ============================================================ */
@@ -576,8 +608,9 @@ p{color:var(--muted)}
   .feature-grid{grid-template-columns:repeat(2,1fr)}
   .review-grid,.blog-grid,.tariffs{grid-template-columns:1fr 1fr}
   .footer-top{grid-template-columns:1fr 1fr}
-  .split,.calc,.product{grid-template-columns:1fr;gap:40px}
+  .split,.calc,.product,.feature-row,.about-split{grid-template-columns:1fr;gap:40px}
   .calc-result{position:static}
+  .feature-row-body{order:2}
 }
 /* навигация сворачивается в бургер раньше, чтобы не наезжать на логотип */
 @media(max-width:960px){
@@ -593,6 +626,9 @@ p{color:var(--muted)}
   .brand b{font-size:1rem;letter-spacing:.06em}
   .brand .pipe{font-size:.95rem}
   .hero-word{white-space:normal;font-size:clamp(2rem,9vw,3rem)}
+  .cat-ref-grid{grid-template-columns:1fr;gap:14px}
+  .cat-ref{aspect-ratio:16/10}
+  .cat-ref span{font-size:1.5rem}
   .prod-grid,.prod-grid.cols-3{grid-template-columns:repeat(2,1fr);gap:16px}
   .cat-grid{grid-template-columns:1fr 1fr;gap:12px}
   .review-grid,.blog-grid,.tariffs,.feature-grid,.footer-top,.field-row{grid-template-columns:1fr}

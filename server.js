@@ -49,42 +49,69 @@ server.listen(PORT, () => {
   console.log(`\n  Capital Store MSK → http://localhost:${PORT}`);
   console.log(`  VK Market:  ${VK_TOKEN && VK_GROUP_ID ? 'подключён' : 'демо-режим (нет токенов)'}`);
   console.log(`  Telegram:   ${TG_BOT_TOKEN && TG_CHAT_ID ? 'подключён' : 'не настроен (заявки не уйдут)'}\n`);
+  scheduleNightlyRefresh();
 });
 
 /* ============================================================
    /api/products — VK Market
    ============================================================ */
 let cache = { at:0, data:null };
-const CACHE_MS = 5 * 60 * 1000;
+const CACHE_MS = 24 * 60 * 60 * 1000; // сутки — обновляем раз в день (ночью)
+const REFRESH_HOUR = 4;               // час ночного обновления (локальное время сервера)
+
+// Забираем весь каталог из VK постранично (market.get отдаёт максимум 200 за раз)
+async function fetchVkCatalog() {
+  const owner = -Math.abs(Number(VK_GROUP_ID)); // группа → отрицательный owner_id
+  const items = [];
+  for (let offset = 0; offset < 4000; offset += 200) {
+    const api = `https://api.vk.com/method/market.get?owner_id=${owner}`
+      + `&count=200&offset=${offset}&extended=1`
+      + `&access_token=${VK_TOKEN}&v=${VK_API_VERSION}`;
+    const raw = await httpsGetJSON(api);
+    if (raw.error) throw new Error(raw.error.error_msg || 'VK error');
+    const page = (raw.response && raw.response.items) || [];
+    items.push(...page);
+    const total = (raw.response && raw.response.count) || page.length;
+    if (items.length >= total || page.length < 200) break;
+  }
+  return items
+    .filter(it => it.availability === 0 || it.availability == null)
+    .map(normalizeVk);
+}
+
+// Обновление каталога: тянем из VK, кладём в кэш и переписываем снапшот products.json
+async function refreshCatalog() {
+  if (!VK_TOKEN || !VK_GROUP_ID) return;
+  try {
+    const products = await fetchVkCatalog();
+    cache = { at: Date.now(), data: products };
+    try { fs.writeFileSync(path.join(ROOT, 'products.json'), JSON.stringify(products)); } catch (_) {}
+    console.log(`Каталог обновлён из VK: ${products.length} товаров (${new Date().toLocaleString('ru-RU')})`);
+  } catch (err) {
+    console.error('Обновление каталога из VK:', err.message);
+  }
+}
+
+// Планировщик: обновление один раз в сутки ночью (в REFRESH_HOUR)
+function scheduleNightlyRefresh() {
+  if (!VK_TOKEN || !VK_GROUP_ID) return;
+  refreshCatalog(); // разовое обновление при старте
+  const now = new Date();
+  const next = new Date(now);
+  next.setHours(REFRESH_HOUR, 0, 0, 0);
+  if (next <= now) next.setDate(next.getDate() + 1);
+  setTimeout(function tick() {
+    refreshCatalog();
+    setInterval(refreshCatalog, 24 * 60 * 60 * 1000);
+  }, next - now);
+  console.log(`Ночное обновление каталога: ${next.toLocaleString('ru-RU')}, затем каждые 24 ч`);
+}
 
 async function handleProducts(res) {
-  if (!VK_TOKEN || !VK_GROUP_ID) return json(res, 200, []); // фронт покажет демо/снапшот
-  if (cache.data && Date.now() - cache.at < CACHE_MS) return json(res, 200, cache.data);
-
-  try {
-    const owner = -Math.abs(Number(VK_GROUP_ID)); // группа → отрицательный owner_id
-    const items = [];
-    // постранично забираем весь каталог (VK отдаёт максимум 200 за раз)
-    for (let offset = 0; offset < 2000; offset += 200) {
-      const api = `https://api.vk.com/method/market.get?owner_id=${owner}`
-        + `&count=200&offset=${offset}&extended=1`
-        + `&access_token=${VK_TOKEN}&v=${VK_API_VERSION}`;
-      const raw = await httpsGetJSON(api);
-      if (raw.error) throw new Error(raw.error.error_msg || 'VK error');
-      const page = (raw.response && raw.response.items) || [];
-      items.push(...page);
-      const total = (raw.response && raw.response.count) || page.length;
-      if (items.length >= total || page.length < 200) break;
-    }
-    const products = items
-      .filter(it => it.availability === 0 || it.availability == null)
-      .map(normalizeVk);
-    cache = { at: Date.now(), data: products };
-    json(res, 200, products);
-  } catch (err) {
-    console.error('VK market.get:', err.message);
-    json(res, 200, cache.data || []); // при сбое — отдаём кэш или пусто
-  }
+  if (!VK_TOKEN || !VK_GROUP_ID) return json(res, 200, []); // фронт покажет снапшот/демо
+  // отдаём кэш; если устарел (сутки) или пуст — обновляем на лету
+  if (!cache.data || Date.now() - cache.at >= CACHE_MS) await refreshCatalog();
+  json(res, 200, cache.data || []);
 }
 
 // Бренды для распознавания (порядок важен: сначала многословные)

@@ -269,7 +269,7 @@ async function renderProduct(sel){
           ${p.old?`<span class="price-old">${money(p.old)}</span>`:''}
         </div>
         ${p.old?`<span class="product-badge">Выгода ${money(p.old-p.price)}</span>`:''}
-        <p class="product-desc">${esc(p.desc||'Оригинальная вещь с проверкой подлинности. Доставка из-за рубежа.')}</p>
+        <p class="product-desc">${esc(p.desc||'Оригинал с проверкой подлинности. В наличии в Москве — отправим сразу.')}</p>
         <div class="size-head"><b>Размер</b><a href="logistics.html#faq">Таблица размеров</a></div>
         <div class="sizes" id="sizes">
           ${(p.sizes||['One size']).map((s,i)=>`<button class="size ${i===0?'active':''}" data-size="${esc(s)}">${esc(s)}</button>`).join('')}
@@ -280,8 +280,8 @@ async function renderProduct(sel){
         </div>
         <ul class="product-meta">
           <li>${ICON.shield}<span>100% оригинал — проверка подлинности перед отправкой</span></li>
-          <li>${ICON.truck}<span>Доставка из Европы и Азии, 10–18 дней</span></li>
-          <li>${ICON.tag}<span>Фиксируем цену на момент заявки</span></li>
+          <li>${ICON.box}<span>В наличии в Москве — отправка в день заказа</span></li>
+          <li>${ICON.truck}<span>Доставка по Москве и всей России</span></li>
         </ul>
       </div>
     </div>`;
