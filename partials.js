@@ -43,6 +43,9 @@ function headerHTML(active){
       <a href="index.html" class="brand">${wordmark}</a>
       <div class="nav-side nav-side-right">
         <nav class="nav-links nav-right">${right}</nav>
+        <a class="icon-btn" href="catalog.html?fav=1" aria-label="Избранное">
+          ${ICON.heart}<span class="fav-count">0</span>
+        </a>
         <button class="icon-btn cart-open" aria-label="Корзина">
           ${ICON.cart}<span class="cart-count">0</span>
         </button>
@@ -72,11 +75,11 @@ function footerHTML(){
         </div>
         ${col('Магазин', [['Наличие','catalog.html'],['Верхняя одежда','catalog.html?cat=outer'],['Обувь','catalog.html?cat=shoes'],['Аксессуары','catalog.html?cat=acc']])}
         ${col('Клиентам', [['Логистика и оплата','logistics.html'],['Поддержка','support.html'],['Новости','blog.html'],['Контакты','contacts.html']])}
-        ${col('Документы', [['Публичная оферта','#'],['Политика конфиденциальности','#'],['Возврат','logistics.html#faq']])}
+        ${col('Документы', [['Публичная оферта','offer.html'],['Политика конфиденциальности','privacy.html'],['Возврат','logistics.html#faq']])}
       </div>
       <div class="footer-bottom">
         <p>© ${new Date().getFullYear()} Capital Store MSK. Все права защищены.</p>
-        <nav><a href="#">Оферта</a><a href="#">Конфиденциальность</a><a href="contacts.html">Контакты</a></nav>
+        <nav><a href="offer.html">Оферта</a><a href="privacy.html">Конфиденциальность</a><a href="contacts.html">Контакты</a></nav>
       </div>
     </div>
   </footer>`;

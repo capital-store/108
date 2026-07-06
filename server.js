@@ -38,6 +38,10 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/products' && req.method === 'GET') return handleProducts(res);
     if (url.pathname === '/api/order'    && req.method === 'POST') return handleOrder(req, res);
     if (url.pathname.startsWith('/api/')) return json(res, 404, { error:'not found' });
+    // страница товара — подставляем Open Graph под конкретный товар (превью в мессенджерах)
+    if ((url.pathname === '/product.html' || url.pathname === '/product') && url.searchParams.get('id')) {
+      return handleProductPage(url.searchParams.get('id'), res);
+    }
     return serveStatic(url.pathname, res);
   } catch (err) {
     console.error('Ошибка запроса:', err);
@@ -245,6 +249,47 @@ function sendTelegram(text) {
     const res = JSON.parse(r || '{}');
     if (!res.ok) throw new Error(res.description || 'telegram error');
     return res;
+  });
+}
+
+/* ============================================================
+   Страница товара с Open Graph (превью в Telegram/VK/соцсетях)
+   ============================================================ */
+function getCatalog() {
+  if (cache.data && cache.data.length) return cache.data;
+  try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'products.json'), 'utf8')); }
+  catch (_) { return []; }
+}
+
+function handleProductPage(id, res) {
+  fs.readFile(path.join(ROOT, 'product.html'), 'utf8', (err, html) => {
+    if (err) return serveStatic('/product.html', res);
+    const p = getCatalog().find(x => String(x.id) === String(id));
+    if (p) {
+      const e = s => String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const title = `${p.brand ? e(p.brand) + ' — ' : ''}${e(p.name)} — Capital Store MSK`;
+      const desc = `${e(p.name)} — ${fmt(p.price)} ₽. Оригинал в наличии, проверка подлинности, доставка по России.`;
+      const img = e(p.img || '');
+      const og = `
+    <meta property="og:type" content="product">
+    <meta property="og:site_name" content="Capital Store MSK">
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${desc}">
+    <meta property="og:image" content="${img}">
+    <meta property="product:price:amount" content="${p.price}">
+    <meta property="product:price:currency" content="RUB">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${title}">
+    <meta name="twitter:description" content="${desc}">
+    <meta name="twitter:image" content="${img}">
+`;
+      html = html.replace('</head>', og + '</head>')
+                 .replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`)
+                 .replace(/(<meta name="description" content=")[^"]*(">)/, `$1${desc}$2`);
+    }
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
+    res.end(html);
   });
 }
 

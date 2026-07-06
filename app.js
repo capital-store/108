@@ -141,6 +141,24 @@ const Cart = {
 };
 
 /* ============================================================
+   ИЗБРАННОЕ (localStorage, ключ capital_favs) — множество id
+   ============================================================ */
+const Favs = {
+  key:'capital_favs',
+  ids:new Set(),
+  load(){ try{ this.ids = new Set(JSON.parse(localStorage.getItem(this.key)) || []); }catch(_){ this.ids=new Set(); } },
+  save(){ localStorage.setItem(this.key, JSON.stringify([...this.ids])); this.sync(); },
+  has(id){ return this.ids.has(String(id)); },
+  toggle(id){ id=String(id); this.ids.has(id) ? this.ids.delete(id) : this.ids.add(id); this.save(); },
+  count(){ return this.ids.size; },
+  sync(){
+    const c = this.count();
+    $$('.fav-count').forEach(el=>{ el.textContent=c; el.classList.toggle('show', c>0); });
+    $$('[data-fav]').forEach(b=>b.classList.toggle('active', this.has(b.dataset.fav)));
+  }
+};
+
+/* ============================================================
    РЕНДЕР: карточка товара
    ============================================================ */
 function cardHTML(p){
@@ -149,7 +167,7 @@ function cardHTML(p){
   return `<article class="card">
     <div class="card-media">
       ${p.tag ? `<span class="${tagCls}">${esc(p.tag)}</span>` : ''}
-      <button class="card-fav" aria-label="В избранное">${ICON.heart}</button>
+      <button class="card-fav ${Favs.has(p.id)?'active':''}" data-fav="${esc(p.id)}" aria-label="В избранное">${ICON.heart}</button>
       <a href="product.html?id=${encodeURIComponent(p.id)}"><img src="${p.img}" alt="${esc(p.name)}" loading="lazy"></a>
       <div class="card-quick">
         <button class="btn btn-dark btn-block" data-add="${esc(p.id)}">${ICON.bag}<span>В корзину</span></button>
@@ -171,6 +189,14 @@ function bindAddButtons(root=document){
       if (p) Cart.add(p, (p.sizes && p.sizes[0]) || 'One size');
     });
   });
+  $$('[data-fav]', root).forEach(btn=>{
+    if (btn._boundFav) return; btn._boundFav = true;
+    btn.addEventListener('click', e=>{
+      e.preventDefault();
+      Favs.toggle(btn.dataset.fav);
+      btn.classList.toggle('active', Favs.has(btn.dataset.fav));
+    });
+  });
 }
 
 /* ============================================================
@@ -180,32 +206,83 @@ async function renderCatalog(gridSel, chipsSel){
   const grid = $(gridSel); if(!grid) return;
   grid.innerHTML = '<p style="color:var(--muted)">Загружаем каталог…</p>';
   await loadProducts();
-  let filter = qs('cat') || 'all';
-  const onlyNew = qs('new'); // «Поступления» — свежие позиции (VK отдаёт от новых к старым)
-  const base = () => onlyNew ? PRODUCTS.slice(0, 40) : PRODUCTS;
 
-  if(onlyNew){
-    const h = $('.page-hero h1'), sub = $('.page-hero p');
+  let filter   = qs('cat') || 'all';
+  let search   = qs('q') || '';
+  let brand    = qs('brand') || 'all';
+  let sort     = qs('sort') || 'default';
+  const onlyNew = qs('new');   // «Поступления» — свежие позиции
+  const onlyFav = qs('fav');   // «Избранное»
+
+  // источник: избранное / поступления / весь каталог
+  const base = () => {
+    if(onlyFav) return PRODUCTS.filter(p=>Favs.has(p.id));
+    if(onlyNew) return PRODUCTS.slice(0, 40);
+    return PRODUCTS;
+  };
+
+  // заголовок страницы под режим
+  const h = $('.page-hero h1'), sub = $('.page-hero p');
+  if(onlyFav){
+    if(h) h.textContent = 'Избранное';
+    if(sub) sub.textContent = 'Отложенные вами товары. Хранятся в этом браузере.';
+    document.title = 'Избранное — Capital Store MSK';
+  } else if(onlyNew){
     if(h) h.textContent = 'Поступления';
-    if(sub) sub.textContent = 'Свежие новинки и хиты — то, что приехало недавно.';
+    if(sub) sub.textContent = 'Свежие новинки — то, что приехало недавно.';
     document.title = 'Поступления — Capital Store MSK';
-    // подсветить пункт «Поступления» в меню
     $$('.site-header a, #mobileMenu a').forEach(a=>{
-      const isArr = (a.getAttribute('href')||'').includes('new=1');
-      a.classList.toggle('active', isArr);
+      a.classList.toggle('active', (a.getAttribute('href')||'').includes('new=1'));
     });
   }
 
+  // заполняем список брендов из каталога
+  const brandSel = $('#brand-filter');
+  if(brandSel && brandSel.options.length<=1){
+    const brands = [...new Set(PRODUCTS.map(p=>p.brand).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
+    brands.forEach(b=>{ const o=document.createElement('option'); o.value=b; o.textContent=b; brandSel.appendChild(o); });
+  }
+
+  const applySort = list => {
+    const l = list.slice();
+    if(sort==='price-asc')  l.sort((a,b)=>a.price-b.price);
+    if(sort==='price-desc') l.sort((a,b)=>b.price-a.price);
+    return l; // 'default' — как пришло из VK (от новых к старым)
+  };
+
   const draw = () => {
-    const src = base();
-    const list = filter==='all' ? src : src.filter(p=>p.cat===filter);
+    let list = base();
+    if(filter!=='all') list = list.filter(p=>p.cat===filter);
+    if(brand!=='all')  list = list.filter(p=>p.brand===brand);
+    if(search){
+      const q = search.toLowerCase();
+      list = list.filter(p=>(p.name+' '+(p.brand||'')).toLowerCase().includes(q));
+    }
+    list = applySort(list);
+
+    const cnt = $('#result-count');
+    if(cnt) cnt.textContent = list.length ? `${list.length} ${plural(list.length,'товар','товара','товаров')}` : '';
+
     grid.innerHTML = list.length
       ? list.map(cardHTML).join('')
-      : '<p style="color:var(--muted)">В этой категории пока пусто. Загляните позже.</p>';
+      : `<p style="color:var(--muted);grid-column:1/-1">${onlyFav?'В избранном пока пусто. Нажимайте на сердечко у товаров.':'Ничего не найдено. Измените фильтры или запрос.'}</p>`;
     bindAddButtons(grid);
     revealScan(grid);
   };
 
+  // синхронизируем адресную строку
+  const syncURL = () => {
+    const q = new URLSearchParams();
+    if(filter!=='all') q.set('cat', filter);
+    if(brand!=='all')  q.set('brand', brand);
+    if(search)         q.set('q', search);
+    if(sort!=='default') q.set('sort', sort);
+    if(onlyNew) q.set('new','1');
+    if(onlyFav) q.set('fav','1');
+    history.replaceState(null,'', 'catalog.html'+(q.toString()?`?${q}`:''));
+  };
+
+  // чипсы категорий
   const chips = $(chipsSel);
   if (chips){
     $$('.chip', chips).forEach(ch=>{
@@ -214,15 +291,41 @@ async function renderCatalog(gridSel, chipsSel){
         filter = ch.dataset.filter;
         $$('.chip', chips).forEach(c=>c.classList.remove('active'));
         ch.classList.add('active');
-        const q = new URLSearchParams();
-        if(filter!=='all') q.set('cat', filter);
-        if(onlyNew) q.set('new','1');
-        history.replaceState(null,'', 'catalog.html'+(q.toString()?`?${q}`:''));
-        draw();
+        syncURL(); draw();
       });
     });
   }
+
+  // поиск
+  const searchInput = $('#search');
+  if(searchInput){
+    searchInput.value = search;
+    let t; searchInput.addEventListener('input', ()=>{
+      clearTimeout(t);
+      t = setTimeout(()=>{ search = searchInput.value.trim(); syncURL(); draw(); }, 200);
+    });
+  }
+  // бренд
+  if(brandSel){
+    brandSel.value = brand;
+    brandSel.addEventListener('change', ()=>{ brand = brandSel.value; syncURL(); draw(); });
+  }
+  // сортировка
+  const sortSel = $('#sort');
+  if(sortSel){
+    sortSel.value = sort;
+    sortSel.addEventListener('change', ()=>{ sort = sortSel.value; syncURL(); draw(); });
+  }
+
   draw();
+}
+
+// склонение числительных: 1 товар, 2 товара, 5 товаров
+function plural(n, one, few, many){
+  const m10=n%10, m100=n%100;
+  if(m10===1 && m100!==11) return one;
+  if(m10>=2 && m10<=4 && (m100<10||m100>=20)) return few;
+  return many;
 }
 
 /* ============================================================
@@ -277,6 +380,7 @@ async function renderProduct(sel){
         <div class="product-actions">
           <button class="btn btn-dark btn-lg" id="addBtn">${ICON.bag}<span>Добавить в корзину</span></button>
           <button class="btn btn-outline btn-lg" id="orderBtn">Оставить заявку</button>
+          <button class="btn btn-light btn-lg icon-only ${Favs.has(p.id)?'active':''}" id="favBtn" aria-label="В избранное">${ICON.heart}</button>
         </div>
         <ul class="product-meta">
           <li>${ICON.shield}<span>100% оригинал — проверка подлинности перед отправкой</span></li>
@@ -301,6 +405,8 @@ async function renderProduct(sel){
   // действия
   $('#addBtn').addEventListener('click', ()=>Cart.add(p, size));
   $('#orderBtn').addEventListener('click', ()=>openOrder({ item:`${p.brand} — ${p.name} (${size})`, single:true }));
+  const favBtn = $('#favBtn');
+  favBtn.addEventListener('click', ()=>{ Favs.toggle(p.id); favBtn.classList.toggle('active', Favs.has(p.id)); });
 
   document.title = `${p.name} — Capital Store MSK`;
 }
@@ -364,6 +470,8 @@ function revealScan(root=document){
 document.addEventListener('DOMContentLoaded', ()=>{
   Cart.load();
   Cart.sync();
+  Favs.load();
+  Favs.sync();
   renderCalc();
   revealScan();
 
