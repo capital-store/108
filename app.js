@@ -35,7 +35,9 @@ const ICON = {
   wa:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.9.9-2.8-.2-.3A8 8 0 1 1 12 20zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2.1-.2 0-.3 0-.5s-.5-1.3-.7-1.7-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3c-.3.3-.9.9-.9 2.1s.9 2.5 1.1 2.6a9.4 9.4 0 0 0 3.6 3.2c1.3.5 1.8.6 2.4.5.4 0 1.4-.5 1.6-1.1s.2-1 .1-1.1z"/></svg>',
   mail:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/></svg>',
   pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s7-5.6 7-11a7 7 0 0 0-14 0c0 5.4 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.5 3.5c.6 0 1 .4 1.2 1l.9 3c.2.6 0 1.2-.5 1.6l-1.3 1a12 12 0 0 0 5.6 5.6l1-1.3c.4-.5 1-.7 1.6-.5l3 .9c.6.2 1 .6 1 1.2v3c0 .8-.7 1.5-1.5 1.4A16.5 16.5 0 0 1 5.1 5C5 4.2 5.7 3.5 6.5 3.5z"/></svg>',
   ig:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>',
+  vk:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.9 16.6c-5.4 0-8.8-3.8-8.9-10h2.8c.1 4.6 2.2 6.5 3.7 6.9V6.6h2.6v3.9c1.5-.2 3.1-1.8 3.7-3.9h2.5c-.5 2.6-2.1 4.2-3.3 4.9 1.2.5 3 2 3.8 5h-2.8c-.5-1.9-2-3.4-3.9-3.6v3.6h-.9z"/></svg>',
 };
 
 /* ============================================================
@@ -420,25 +422,29 @@ const SHIP_RATES = {
   asia:{ label:'Азия', base:1900, perKg:750 },
   usa:{ label:'США', base:3200, perKg:1100 },
 };
+// курсы валют к рублю (ориентировочные, легко поправить)
+const FX = { RUB:1, USD:90, EUR:100, CNY:13 };
 function renderCalc(){
   const form = $('#calc'); if(!form) return;
   const out = {
     goods: $('#r-goods'), ship: $('#r-ship'), fee: $('#r-fee'), total: $('#r-total')
   };
   const recalc = () => {
-    const price = Math.max(0, +$('#c-price').value || 0);
+    const raw = Math.max(0, +$('#c-price').value || 0);
+    const cur = ($('#c-currency') && $('#c-currency').value) || 'RUB';
+    const price = Math.round(raw * (FX[cur] || 1));   // цена товара в рублях
     const weight = Math.max(0.3, +$('#c-weight').value || 1);
     const region = $('#c-region').value;
     const r = SHIP_RATES[region] || SHIP_RATES.eu;
     const ship = Math.round(r.base + r.perKg * weight);
-    const fee = Math.round(price * 0.1);           // сервисный сбор 10%
+    const fee = Math.round(price * 0.1);              // сервисный сбор 10%
     const total = price + ship + fee;
     out.goods.textContent = money(price);
     out.ship.textContent  = money(ship);
     out.fee.textContent   = money(fee);
     out.total.textContent = money(total);
   };
-  ['#c-price','#c-weight','#c-region'].forEach(s=>{
+  ['#c-price','#c-currency','#c-weight','#c-region'].forEach(s=>{
     const el=$(s); if(el){ el.addEventListener('input',recalc); el.addEventListener('change',recalc); }
   });
   recalc();

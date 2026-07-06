@@ -106,6 +106,17 @@ p{color:var(--muted)}
 /* ============================================================
    HEADER
    ============================================================ */
+/* верхняя промо-полоса */
+.topbar{background:#111010;border-bottom:1px solid rgba(179,145,90,.18)}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;height:40px}
+.topbar-props{display:flex;gap:26px}
+.topbar-props span{position:relative;font-size:12px;letter-spacing:.03em;color:rgba(246,241,232,.6)}
+.topbar-props span:not(:first-child){padding-left:26px}
+.topbar-props span:not(:first-child)::before{content:"";position:absolute;left:9px;top:50%;transform:translateY(-50%);
+  width:4px;height:4px;border-radius:50%;background:var(--gold)}
+.topbar-phone{font-size:13px;font-weight:600;color:var(--cream);letter-spacing:.02em;white-space:nowrap}
+.topbar-phone:hover{color:var(--gold)}
+
 .site-header{
   position:sticky;top:0;z-index:80;
   background:var(--black);
@@ -178,8 +189,8 @@ p{color:var(--muted)}
 .hero-bg::after{
   content:"";position:absolute;inset:0;
   background:
-    radial-gradient(72% 58% at 50% 50%,rgba(6,6,6,.72),rgba(6,6,6,.24) 100%),
-    linear-gradient(180deg,rgba(6,6,6,.5) 0%,rgba(6,6,6,.34) 42%,rgba(6,6,6,.62) 100%);
+    radial-gradient(70% 58% at 50% 52%,rgba(6,6,6,.86),rgba(6,6,6,.32) 100%),
+    linear-gradient(180deg,rgba(6,6,6,.56) 0%,rgba(6,6,6,.42) 42%,rgba(6,6,6,.66) 100%);
 }
 
 /* центрированный hero — как на capitalstoremsk.ru */
@@ -561,6 +572,9 @@ p{color:var(--muted)}
 .footer-brand b{font-family:var(--serif);font-size:1.5rem;color:#fff;display:block}
 .footer-brand span{font-size:9.5px;letter-spacing:.4em;text-transform:uppercase;color:var(--muted-soft)}
 .footer-brand p{margin-top:18px;font-size:.94rem;max-width:280px;color:rgba(246,241,232,.55)}
+.footer-contacts{display:flex;flex-direction:column;gap:5px;margin-top:18px}
+.footer-contacts a{font-size:1.05rem;color:#fff;font-weight:500;font-family:var(--serif)}
+.footer-contacts a:hover{color:var(--gold)}
 .footer-col h4{font-family:var(--sans);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-soft);margin-bottom:20px;font-weight:600}
 .footer-col ul{display:flex;flex-direction:column;gap:12px}
 .footer-col a{font-size:.94rem;color:rgba(246,241,232,.7);transition:color .2s}
@@ -668,6 +682,8 @@ p{color:var(--muted)}
   .container{padding:0 20px}
   .brand b{font-size:1rem;letter-spacing:.06em}
   .brand .pipe{font-size:.95rem}
+  .topbar-props{display:none}
+  .topbar-inner{justify-content:center;height:36px}
   .hero-word{white-space:normal;font-size:clamp(2rem,9vw,3rem)}
   .cat-ref-grid{grid-template-columns:1fr;gap:14px}
   .cat-ref{aspect-ratio:16/10}

@@ -33,11 +33,11 @@
 <script src="partials.js"></script>
 <script>
   const LINKS = [
-    ['tg','Telegram','@capitalstoremsk — заявки и вопросы', CONTACTS.tg],
+    ['tg','Telegram', CONTACTS.tgName+' — заявки и вопросы', CONTACTS.tg],
     ['wa','WhatsApp','Чат с менеджером', CONTACTS.wa],
-    ['ig','Instagram','Новинки и образы', CONTACTS.ig],
-    ['mail','E-mail','hello@capitalstoremsk.ru', CONTACTS.mail],
-    ['pin','Москва','Доставка по России и в СНГ', 'logistics.html'],
+    ['vk','ВКонтакте','Наше сообщество и отзывы', CONTACTS.vk],
+    ['mail','E-mail', CONTACTS.mailName, CONTACTS.mail],
+    ['phone','Телефон', CONTACTS.phone, CONTACTS.phoneTel],
   ];
   document.getElementById('links').innerHTML = LINKS.map(l=>`
     <a class="link-row" href="${l[3]}" ${l[3].startsWith('http')?'target="_blank" rel="noopener"':''}>

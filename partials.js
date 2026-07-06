@@ -18,11 +18,14 @@ const NAV_RIGHT = [
 const NAV = [...NAV_LEFT, ...NAV_RIGHT];
 
 const CONTACTS = {
-  tg:'https://t.me/capitalstoremsk',
-  wa:'https://wa.me/79000000000',
-  ig:'https://instagram.com/capitalstoremsk',
-  mail:'mailto:hello@capitalstoremsk.ru',
-  phone:'+7 (900) 000-00-00',
+  tg:'https://t.me/capitalove',
+  tgName:'@capitalove',
+  wa:'https://wa.me/79096666652',
+  vk:'https://vk.com/capitalstoremsk',
+  mail:'mailto:capitalstoremsk@bk.ru',
+  mailName:'capitalstoremsk@bk.ru',
+  phone:'+7 909 666-66-52',
+  phoneTel:'tel:+79096666652',
   city:'Москва',
 };
 
@@ -34,7 +37,17 @@ const navLink = (n, active) =>
 function headerHTML(active){
   const left  = NAV_LEFT.map(n=>navLink(n,active)).join('');
   const right = NAV_RIGHT.map(n=>navLink(n,active)).join('');
-  return `<header class="site-header">
+  return `<div class="topbar">
+    <div class="container topbar-inner">
+      <div class="topbar-props">
+        <span>Только оригинал · проверка подлинности</span>
+        <span>Доставка по всей России</span>
+        <span>Более 1000 отзывов</span>
+      </div>
+      <a class="topbar-phone" href="${CONTACTS.phoneTel}">${CONTACTS.phone}</a>
+    </div>
+  </div>
+  <header class="site-header">
     <div class="container nav">
       <div class="nav-side nav-side-left">
         <button class="burger" id="burger" aria-label="Меню"><span></span><span></span><span></span></button>
@@ -67,10 +80,14 @@ function footerHTML(){
         <div class="footer-brand">
           <b>CAPITAL STORE <i style="font-style:normal;color:var(--gold)">|</i> MSK</b><span>Moscow · Original</span>
           <p>Оригинальная брендовая одежда, обувь и аксессуары с доставкой из-за рубежа. Проверка подлинности каждой вещи.</p>
+          <div class="footer-contacts">
+            <a href="${CONTACTS.phoneTel}">${CONTACTS.phone}</a>
+            <a href="${CONTACTS.mail}">${CONTACTS.mailName}</a>
+          </div>
           <div class="footer-social">
             <a href="${CONTACTS.tg}" aria-label="Telegram" target="_blank" rel="noopener">${ICON.tg}</a>
             <a href="${CONTACTS.wa}" aria-label="WhatsApp" target="_blank" rel="noopener">${ICON.wa}</a>
-            <a href="${CONTACTS.ig}" aria-label="Instagram" target="_blank" rel="noopener">${ICON.ig}</a>
+            <a href="${CONTACTS.vk}" aria-label="ВКонтакте" target="_blank" rel="noopener">${ICON.vk}</a>
           </div>
         </div>
         ${col('Магазин', [['Наличие','catalog.html'],['Верхняя одежда','catalog.html?cat=outer'],['Обувь','catalog.html?cat=shoes'],['Аксессуары','catalog.html?cat=acc']])}

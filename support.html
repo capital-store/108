@@ -77,9 +77,11 @@
 <script>
   // ссылки на мессенджеры
   const LINKS = [
-    ['tg','Telegram','Ответим за пару минут', CONTACTS.tg],
+    ['tg','Telegram', CONTACTS.tgName+' — ответим за пару минут', CONTACTS.tg],
     ['wa','WhatsApp','Чат с менеджером', CONTACTS.wa],
-    ['mail','E-mail','hello@capitalstoremsk.ru', CONTACTS.mail],
+    ['vk','ВКонтакте','Наше сообщество', CONTACTS.vk],
+    ['phone','Телефон', CONTACTS.phone, CONTACTS.phoneTel],
+    ['mail','E-mail', CONTACTS.mailName, CONTACTS.mail],
   ];
   document.getElementById('supLinks').innerHTML = LINKS.map(l=>`
     <a class="link-row" href="${l[3]}" target="_blank" rel="noopener">

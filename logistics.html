@@ -33,9 +33,20 @@
     <div class="calc">
       <div class="panel" id="calc" data-reveal>
         <div class="form">
-          <div class="field">
-            <label>Стоимость товара, ₽</label>
-            <input type="number" id="c-price" value="60000" min="0" step="1000">
+          <div class="field-row">
+            <div class="field">
+              <label>Стоимость товара</label>
+              <input type="number" id="c-price" value="500" min="0" step="10">
+            </div>
+            <div class="field">
+              <label>Валюта</label>
+              <select id="c-currency">
+                <option value="USD">$ Доллар</option>
+                <option value="EUR">€ Евро</option>
+                <option value="CNY">¥ Юань</option>
+                <option value="RUB">₽ Рубль</option>
+              </select>
+            </div>
           </div>
           <div class="field-row">
             <div class="field">
@@ -51,7 +62,7 @@
               </select>
             </div>
           </div>
-          <p class="form-note" style="text-align:left">Сервисный сбор — 10% от стоимости товара. Доставка зависит от веса и региона.</p>
+          <p class="form-note" style="text-align:left">Стоимость товара пересчитывается в рубли по текущему курсу. Сервисный сбор — 10%. Доставка зависит от веса и региона.</p>
         </div>
       </div>
       <div class="calc-result" data-reveal data-reveal-delay="1">
@@ -107,7 +118,7 @@
 <script>
   // тарифы
   const TARIFFS = [
-    ['truck','Стандарт','от 2 500 ₽',['Срок 14–18 дней','Трек-номер','Проверка перед отправкой'],false],
+    ['truck','Стандарт','от 2 500 ₽',['Срок 25–30 дней','Трек-номер','Проверка перед отправкой'],false],
     ['box','Экспресс','от 4 900 ₽',['Срок 8–12 дней','Приоритетная обработка','Страхование посылки'],true],
     ['pin','Курьер по Москве','от 500 ₽',['День в день','Примерка при получении','Оплата на месте'],false],
   ];
@@ -133,7 +144,7 @@
   // FAQ
   const FAQ = [
     ['Как рассчитывается доставка?','Складывается из стоимости товара, стоимости доставки (зависит от веса и региона) и сервисного сбора 10%. Калькулятор выше даёт ориентир, точную сумму подтвердит менеджер.'],
-    ['Какие сроки?','Стандартная доставка — 14–18 дней, экспресс — 8–12. По Москве возможна курьерская доставка в день заявки при наличии.'],
+    ['Какие сроки?','Стандартная доставка — 25–30 дней, экспресс — 8–12. По Москве возможна курьерская доставка в день заявки при наличии.'],
     ['Как оплатить?','После заявки менеджер согласует вещь и цену и предложит удобный способ оплаты. Онлайн-оплаты прямо на сайте нет.'],
     ['Есть ли примерка?','При курьерской доставке по Москве возможна примерка при получении. По остальным регионам — обмен по договорённости.'],
     ['Что с размерами?','Поможем подобрать размер по вашим меркам и таблицам бренда — напишите в поддержку, менеджер подскажет.'],
@@ -143,14 +154,7 @@
       <button class="faq-q">${f[0]}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 5v14M5 12h14"/></svg></button>
       <div class="faq-a"><p>${f[1]}</p></div>
     </div>`).join('');
-  $$('#faqList .faq-item').forEach(item=>{
-    const q=$('.faq-q',item), a=$('.faq-a',item);
-    q.addEventListener('click',()=>{
-      const open=item.classList.toggle('open');
-      a.style.maxHeight=open?a.scrollHeight+'px':0;
-      $$('#faqList .faq-item').forEach(o=>{if(o!==item){o.classList.remove('open');$('.faq-a',o).style.maxHeight=0;}});
-    });
-  });
+  // аккордеон FAQ навешивает app.js в DOMContentLoaded (единая привязка)
   revealScan(document);
 </script>
 </body>
