@@ -78,7 +78,8 @@ function footerHTML(){
     <div class="container">
       <div class="footer-top">
         <div class="footer-brand">
-          <b>CAPITAL STORE <i style="font-style:normal;color:var(--gold)">|</i> MSK</b><span>Moscow · Original</span>
+          <a href="index.html" class="footer-logo"><img src="img/logo.png" alt="Capital Store MSK — логистика, одежда, обувь, аксессуары"></a>
+          <span>Moscow · Original</span>
           <p>Оригинальная брендовая одежда, обувь и аксессуары с доставкой из-за рубежа. Проверка подлинности каждой вещи.</p>
           <div class="footer-contacts">
             <a href="${CONTACTS.phoneTel}">${CONTACTS.phone}</a>
@@ -155,6 +156,12 @@ function overlaysHTML(){
    ИНЪЕКЦИЯ БЛОКОВ
    ============================================================ */
 (function injectPartials(){
+  // favicon (иконка вкладки) — логотип
+  if(!document.querySelector('link[rel="icon"]')){
+    ['icon','apple-touch-icon'].forEach(rel=>{
+      const l=document.createElement('link'); l.rel=rel; l.href='img/logo.png'; document.head.appendChild(l);
+    });
+  }
   const h = document.getElementById('site-header');
   if (h) h.outerHTML = headerHTML(h.dataset.page || '');
   const f = document.getElementById('site-footer');

@@ -505,7 +505,20 @@ p{color:var(--muted)}
 .product-desc{color:var(--muted);font-size:1.02rem;line-height:1.75;margin-bottom:30px;padding-bottom:30px;border-bottom:1px solid var(--line)}
 .size-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .size-head b{font-size:14px}
-.size-head a{font-size:13px;color:var(--gold-deep);font-weight:600}
+.size-head a,.size-head button{font-size:13px;color:var(--gold-deep);font-weight:600;
+  background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-family:inherit}
+.size-head button:hover{color:var(--gold)}
+
+/* размерная сетка: собственный тёмный фон (модалка создаётся отдельно) */
+#sizeModal{background:rgba(13,13,13,.5);backdrop-filter:blur(3px)}
+/* таблица размеров в модалке */
+.chart-title{font-family:var(--serif);font-size:1.08rem;margin:22px 0 10px;color:var(--ink)}
+.chart-title:first-of-type{margin-top:4px}
+.chart-wrap{overflow-x:auto;border:1px solid var(--line-soft);border-radius:var(--radius)}
+.size-chart{width:100%;border-collapse:collapse;font-size:.92rem}
+.size-chart th{background:var(--cream-deep);color:var(--ink);font-weight:600;padding:11px 10px;font-size:.8rem;letter-spacing:.02em}
+.size-chart td{text-align:center;padding:10px;border-top:1px solid var(--line-soft);color:var(--ink-soft)}
+.size-chart tbody tr:hover{background:var(--cream)}
 .sizes{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:30px}
 .size{min-width:52px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius);
   font-size:14px;font-weight:600;color:var(--ink-soft);transition:.2s}
@@ -570,7 +583,10 @@ p{color:var(--muted)}
 .site-footer{background:var(--black);color:rgba(246,241,232,.7);padding:76px 0 32px}
 .footer-top{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:40px;padding-bottom:52px;border-bottom:1px solid rgba(246,241,232,.1)}
 .footer-brand b{font-family:var(--serif);font-size:1.5rem;color:#fff;display:block}
-.footer-brand span{font-size:9.5px;letter-spacing:.4em;text-transform:uppercase;color:var(--muted-soft)}
+.footer-brand span{font-size:9.5px;letter-spacing:.4em;text-transform:uppercase;color:var(--muted-soft);display:block;margin-top:12px}
+.footer-logo{display:inline-block;width:94px;height:94px;border-radius:14px;overflow:hidden;background:#fff;padding:9px;transition:transform .3s var(--ease)}
+.footer-logo:hover{transform:translateY(-3px)}
+.footer-logo img{width:100%;height:100%;object-fit:contain}
 .footer-brand p{margin-top:18px;font-size:.94rem;max-width:280px;color:rgba(246,241,232,.55)}
 .footer-contacts{display:flex;flex-direction:column;gap:5px;margin-top:18px}
 .footer-contacts a{font-size:1.05rem;color:#fff;font-weight:500;font-family:var(--serif)}

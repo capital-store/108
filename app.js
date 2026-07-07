@@ -212,6 +212,7 @@ async function renderCatalog(gridSel, chipsSel){
   let filter   = qs('cat') || 'all';
   let search   = qs('q') || '';
   let brand    = qs('brand') || 'all';
+  let size     = qs('size') || 'all';
   let sort     = qs('sort') || 'default';
   const onlyNew = qs('new');   // «Поступления» — свежие позиции
   const onlyFav = qs('fav');   // «Избранное»
@@ -245,6 +246,23 @@ async function renderCatalog(gridSel, chipsSel){
     brands.forEach(b=>{ const o=document.createElement('option'); o.value=b; o.textContent=b; brandSel.appendChild(o); });
   }
 
+  // фильтр размеров — только когда выбрана категория; размеры берём из этой категории
+  const sizeSel = $('#size-filter');
+  const refreshSizeFilter = () => {
+    if(!sizeSel) return;
+    const cats = filter==='all' ? [] :
+      sortSizes([...new Set(base().filter(p=>p.cat===filter).flatMap(p=>p.sizes||[]))]);
+    if(cats.length){
+      sizeSel.innerHTML = '<option value="all">Все размеры</option>' +
+        cats.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+      if(!cats.includes(size)) size='all';
+      sizeSel.value = size;
+      sizeSel.hidden = false;
+    } else {
+      size='all'; sizeSel.hidden = true;
+    }
+  };
+
   const applySort = list => {
     const l = list.slice();
     if(sort==='price-asc')  l.sort((a,b)=>a.price-b.price);
@@ -256,6 +274,7 @@ async function renderCatalog(gridSel, chipsSel){
     let list = base();
     if(filter!=='all') list = list.filter(p=>p.cat===filter);
     if(brand!=='all')  list = list.filter(p=>p.brand===brand);
+    if(size!=='all')   list = list.filter(p=>(p.sizes||[]).includes(size));
     if(search){
       const q = search.toLowerCase();
       list = list.filter(p=>(p.name+' '+(p.brand||'')).toLowerCase().includes(q));
@@ -277,6 +296,7 @@ async function renderCatalog(gridSel, chipsSel){
     const q = new URLSearchParams();
     if(filter!=='all') q.set('cat', filter);
     if(brand!=='all')  q.set('brand', brand);
+    if(size!=='all')   q.set('size', size);
     if(search)         q.set('q', search);
     if(sort!=='default') q.set('sort', sort);
     if(onlyNew) q.set('new','1');
@@ -291,8 +311,10 @@ async function renderCatalog(gridSel, chipsSel){
       ch.classList.toggle('active', ch.dataset.filter===filter);
       ch.addEventListener('click', ()=>{
         filter = ch.dataset.filter;
+        size = 'all';                       // сброс размера при смене категории
         $$('.chip', chips).forEach(c=>c.classList.remove('active'));
         ch.classList.add('active');
+        refreshSizeFilter();
         syncURL(); draw();
       });
     });
@@ -318,7 +340,12 @@ async function renderCatalog(gridSel, chipsSel){
     sortSel.value = sort;
     sortSel.addEventListener('change', ()=>{ sort = sortSel.value; syncURL(); draw(); });
   }
+  // размер
+  if(sizeSel){
+    sizeSel.addEventListener('change', ()=>{ size = sizeSel.value; syncURL(); draw(); });
+  }
 
+  refreshSizeFilter();   // если зашли сразу в категорию — показать размеры
   draw();
 }
 
@@ -328,6 +355,16 @@ function plural(n, one, few, many){
   if(m10===1 && m100!==11) return one;
   if(m10>=2 && m10<=4 && (m100<10||m100>=20)) return few;
   return many;
+}
+
+// сортировка размеров: буквы по шкале, потом числа по возрастанию
+const SIZE_RANK = {XS:0,S:1,M:2,L:3,XL:4,XXL:5,XXXL:6,OS:7};
+function sortSizes(arr){
+  return arr.slice().sort((a,b)=>{
+    const ra = a in SIZE_RANK ? [0,SIZE_RANK[a]] : [1,parseFloat(a)||99];
+    const rb = b in SIZE_RANK ? [0,SIZE_RANK[b]] : [1,parseFloat(b)||99];
+    return ra[0]-rb[0] || ra[1]-rb[1];
+  });
 }
 
 /* ============================================================
@@ -375,7 +412,7 @@ async function renderProduct(sel){
         </div>
         ${p.old?`<span class="product-badge">Выгода ${money(p.old-p.price)}</span>`:''}
         <p class="product-desc">${esc(p.desc||'Оригинал с проверкой подлинности. В наличии в Москве — отправим сразу.')}</p>
-        <div class="size-head"><b>Размер</b><a href="logistics.html#faq">Таблица размеров</a></div>
+        <div class="size-head"><b>Размер</b><button type="button" id="sizeChartBtn">Таблица размеров</button></div>
         <div class="sizes" id="sizes">
           ${(p.sizes||['One size']).map((s,i)=>`<button class="size ${i===0?'active':''}" data-size="${esc(s)}">${esc(s)}</button>`).join('')}
         </div>
@@ -409,8 +446,63 @@ async function renderProduct(sel){
   $('#orderBtn').addEventListener('click', ()=>openOrder({ item:`${p.brand} — ${p.name} (${size})`, single:true }));
   const favBtn = $('#favBtn');
   favBtn.addEventListener('click', ()=>{ Favs.toggle(p.id); favBtn.classList.toggle('active', Favs.has(p.id)); });
+  $('#sizeChartBtn').addEventListener('click', ()=>openSizeChart(p.cat));
 
   document.title = `${p.name} — Capital Store MSK`;
+}
+
+/* ============================================================
+   РАЗМЕРНАЯ СЕТКА (модалка на странице товара)
+   ============================================================ */
+const SIZE_CHARTS = {
+  clothing:{ title:'Одежда', head:['RU','INT','Обхват груди, см'], rows:[
+    ['44','XS','86–89'],['46','S','90–93'],['48','M','94–98'],['50','L','99–103'],
+    ['52','XL','104–108'],['54','XXL','109–114'],['56','XXXL','115–120'] ]},
+  shoes:{ title:'Обувь', head:['EU','US','RU','Длина стопы, см'], rows:[
+    ['40','7','39','25.0'],['41','8','40','25.5'],['42','8.5','41','26.5'],['43','9.5','42','27.5'],
+    ['44','10','43','28.0'],['45','11','44','29.0'],['46','12','45','29.5'] ]},
+  pants:{ title:'Брюки (талия)', head:['RU','INT','Обхват талии, см'], rows:[
+    ['44','W29','73–75'],['46','W30','76–79'],['48','W32','80–84'],['50','W33','85–89'],
+    ['52','W34','90–94'],['54','W36','95–100'] ]},
+};
+function chartsFor(cat){
+  if(cat==='shoes')  return ['shoes'];
+  if(cat==='pants')  return ['pants','clothing'];
+  if(['outer','hoodie','tshirt'].includes(cat)) return ['clothing'];
+  return [];  // сумки/аксессуары — сетка не нужна
+}
+function openSizeChart(cat){
+  let m = $('#sizeModal');
+  if(!m){
+    m = document.createElement('div');
+    m.className = 'modal'; m.id = 'sizeModal';
+    document.body.appendChild(m);
+  }
+  const keys = chartsFor(cat);
+  const tables = keys.length ? keys.map(k=>{
+    const c = SIZE_CHARTS[k];
+    return `<h4 class="chart-title">${c.title}</h4>
+      <div class="chart-wrap"><table class="size-chart">
+        <thead><tr>${c.head.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+        <tbody>${c.rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table></div>`;
+  }).join('') : '<p style="color:var(--muted)">Для этой категории размер универсальный. Уточните детали у менеджера — поможем подобрать.</p>';
+
+  m.innerHTML = `<div class="modal-box">
+    <div class="modal-head">
+      <h3>Таблица размеров</h3>
+      <button class="icon-btn" id="sizeClose" aria-label="Закрыть">${ICON.close}</button>
+    </div>
+    <p class="modal-sub">Ориентир для подбора. Замеры могут отличаться на 1–2 см в зависимости от бренда — при сомнениях напишите нам.</p>
+    ${tables}
+    <a href="support.html" class="btn btn-outline btn-block" style="margin-top:22px">Помочь с размером</a>
+  </div>`;
+
+  const close = ()=>{ m.classList.remove('show'); document.body.classList.remove('no-scroll'); };
+  $('#sizeClose', m).addEventListener('click', close);
+  m.addEventListener('click', e=>{ if(e.target===m) close(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') close(); }, { once:true });
+  requestAnimationFrame(()=>{ m.classList.add('show'); document.body.classList.add('no-scroll'); });
 }
 
 /* ============================================================

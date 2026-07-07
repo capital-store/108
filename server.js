@@ -146,6 +146,30 @@ function findBrand(title) {
   return '';
 }
 
+// Разбор размера из описания VK («Размер: XXL», «Размер - 43», «W32, W33»)
+const CYR_MAP = { 'М':'M','м':'M','Х':'X','х':'X','Л':'L','л':'L','С':'S','с':'S' };
+const SIZE_LET = ['XXXL','XXL','XL','XS','S','M','L','OS'];
+const SIZE_ORDER = { XS:0,S:1,M:2,L:3,XL:4,XXL:5,XXXL:6,OS:7 };
+function parseSizeRaw(desc) {
+  const m = /Размер[ы]?\s*[:\-]?\s*([^•]+)/i.exec(desc || '');
+  if (!m) return '';
+  let raw = m[1].trim().replace(/^•|•$/g, '').trim().replace(/~~.*?~~/g, '');
+  return raw.replace(/\s+/g, ' ').replace(/^[\s,]+|[\s,]+$/g, '');
+}
+function normalizeSizes(raw) {
+  if (!raw) return [];
+  const s = raw.split('').map(ch => CYR_MAP[ch] || ch).join('');
+  const toks = [];
+  for (const L of SIZE_LET) if (new RegExp('(?<![A-Za-z])' + L + '(?![A-Za-z])').test(s)) toks.push(L);
+  const nums = s.replace(/,/g, '.').match(/(?<!\d)\d{2}(?:\.5)?(?!\d)/g) || [];
+  for (const n of nums) { const v = parseFloat(n); if (v >= 28 && v <= 52) toks.push(n); }
+  return [...new Set(toks)].sort((a, b) => {
+    const oa = a in SIZE_ORDER ? [0, SIZE_ORDER[a]] : [1, parseFloat(a)];
+    const ob = b in SIZE_ORDER ? [0, SIZE_ORDER[b]] : [1, parseFloat(b)];
+    return oa[0] - ob[0] || oa[1] - ob[1];
+  });
+}
+
 function normalizeVk(it) {
   const price = it.price ? Math.round(Number(it.price.amount) / 100) : 0;
   const old = it.price && it.price.old_amount ? Math.round(Number(it.price.old_amount) / 100) : 0;
@@ -157,6 +181,7 @@ function normalizeVk(it) {
   }).filter(Boolean);
   const img = images[0] || it.thumb_photo || '';
   const title = it.title || '';
+  const rawSize = parseSizeRaw(it.description || '');
   return {
     id: String(it.id),
     name: cleanName(title),
@@ -166,7 +191,8 @@ function normalizeVk(it) {
     img,
     images: images.length ? images : [img].filter(Boolean),
     desc: (it.description || '').replace(/\s+/g, ' ').trim().slice(0, 600),
-    sizes: [],
+    size: rawSize,
+    sizes: normalizeSizes(rawSize),
     tag: old ? 'Sale' : '',
   };
 }
