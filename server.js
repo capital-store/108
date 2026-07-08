@@ -146,6 +146,19 @@ function findBrand(title) {
   return '';
 }
 
+// Чистим описание: убираем «| МОСКВА | отзывы», размер, цену, упоминание бота
+const DESC_DROP = /(\|)|(размер)|(цена)|(₽)|(\bбот\b)|(@)|(отзыв)|(москва)/i;
+function cleanDesc(raw) {
+  if (!raw) return '';
+  const keep = [];
+  for (let p of String(raw).split(/[•\n]+/)) {
+    p = p.replace(/~~.*?~~/g, '').replace(/^[\s.,\-–—]+|[\s.,\-–—]+$/g, '');
+    if (!p || DESC_DROP.test(p)) continue;
+    if (!keep.includes(p)) keep.push(p);
+  }
+  return keep.join(' · ');
+}
+
 // Разбор размера из описания VK («Размер: XXL», «Размер - 43», «W32, W33»)
 const CYR_MAP = { 'М':'M','м':'M','Х':'X','х':'X','Л':'L','л':'L','С':'S','с':'S' };
 const SIZE_LET = ['XXXL','XXL','XL','XS','S','M','L','OS'];
@@ -190,7 +203,7 @@ function normalizeVk(it) {
     cat: guessCat(title),
     img,
     images: images.length ? images : [img].filter(Boolean),
-    desc: (it.description || '').replace(/\s+/g, ' ').trim().slice(0, 600),
+    desc: cleanDesc((it.description || '').replace(/\s+/g, ' ')).slice(0, 600),
     size: rawSize,
     sizes: normalizeSizes(rawSize),
     tag: old ? 'Sale' : '',

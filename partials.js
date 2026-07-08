@@ -22,6 +22,7 @@ const CONTACTS = {
   tgName:'@capitalove',
   wa:'https://wa.me/79096666652',
   vk:'https://vk.com/capitalstoremsk',
+  ig:'https://www.instagram.com/capitalstore_msk',
   mail:'mailto:capitalstoremsk@bk.ru',
   mailName:'capitalstoremsk@bk.ru',
   phone:'+7 909 666-66-52',
@@ -89,6 +90,7 @@ function footerHTML(){
             <a href="${CONTACTS.tg}" aria-label="Telegram" target="_blank" rel="noopener">${ICON.tg}</a>
             <a href="${CONTACTS.wa}" aria-label="WhatsApp" target="_blank" rel="noopener">${ICON.wa}</a>
             <a href="${CONTACTS.vk}" aria-label="ВКонтакте" target="_blank" rel="noopener">${ICON.vk}</a>
+            <a href="${CONTACTS.ig}" aria-label="Instagram" target="_blank" rel="noopener">${ICON.ig}</a>
           </div>
         </div>
         ${col('Магазин', [['Наличие','catalog.html'],['Верхняя одежда','catalog.html?cat=outer'],['Обувь','catalog.html?cat=shoes'],['Аксессуары','catalog.html?cat=acc']])}
