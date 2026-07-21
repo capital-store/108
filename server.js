@@ -18,6 +18,9 @@ const {
   PORT = 3000,
   VK_TOKEN, VK_GROUP_ID, VK_API_VERSION = '5.199',
   TG_BOT_TOKEN, TG_CHAT_ID,
+  // Запасной канал: если Telegram недоступен напрямую (блокировки у российских
+  // хостеров) — заявка пересылается на этот адрес /api/order другого сервера.
+  RELAY_URL = '',
 } = process.env;
 
 const ROOT = __dirname;
@@ -226,6 +229,9 @@ function guessCat(title) {
    /api/order — заявка в Telegram
    ============================================================ */
 function handleOrder(req, res) {
+  // заявка, пришедшая через релей, дальше не пересылается (защита от петли)
+  const isRelayed = String(req.headers['x-relayed'] || '') === '1';
+
   readBody(req, 25_000).then(async body => {
     let data;
     try { data = JSON.parse(body || '{}'); }
@@ -241,14 +247,50 @@ function handleOrder(req, res) {
       return json(res, 503, { error:'Telegram не настроен на сервере' });
     }
 
+    // 1) пробуем напрямую
     try {
       await sendTelegram(formatOrder(data));
-      json(res, 200, { ok:true });
+      return json(res, 200, { ok:true });
     } catch (err) {
-      console.error('Telegram sendMessage:', err.message);
-      json(res, 502, { error:'не удалось отправить в Telegram' });
+      console.error('Telegram напрямую недоступен:', err.message);
     }
+
+    // 2) запасной путь: пересылаем через релей
+    //    (у российских хостеров api.telegram.org заблокирован)
+    if (RELAY_URL && !isRelayed) {
+      try {
+        await relayOrder(data);
+        console.log('Заявка доставлена через релей:', data.name);
+        return json(res, 200, { ok:true, via:'relay' });
+      } catch (err) {
+        console.error('Релей недоступен:', err.message);
+      }
+    }
+
+    console.error('ЗАЯВКА НЕ ДОСТАВЛЕНА:', JSON.stringify(data));
+    json(res, 502, { error:'не удалось отправить заявку' });
   }).catch(() => json(res, 400, { error:'bad request' }));
+}
+
+// Пересылка заявки на другой экземпляр сайта, у которого есть доступ к Telegram
+function relayOrder(data) {
+  const u = new URL(RELAY_URL);
+  const payload = JSON.stringify(data);
+  return httpsRequest({
+    method: 'POST',
+    hostname: u.hostname,
+    port: u.port || 443,
+    path: u.pathname + u.search,
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(payload),
+      'X-Relayed': '1',
+    },
+  }, payload, 70000).then(txt => {   // Render на бесплатном тарифе может «просыпаться» до минуты
+    const r = JSON.parse(txt || '{}');
+    if (!r.ok) throw new Error(txt.slice(0, 120));
+    return r;
+  });
 }
 
 function formatOrder(d) {
@@ -384,7 +426,7 @@ function httpsGetJSON(url) {
   return httpsRequest(url).then(r => JSON.parse(r));
 }
 
-function httpsRequest(options, body) {
+function httpsRequest(options, body, timeoutMs = 15000) {
   return new Promise((resolve, reject) => {
     const req = https.request(options, resp => {
       let data = '';
@@ -392,7 +434,7 @@ function httpsRequest(options, body) {
       resp.on('end', () => resolve(data));
     });
     req.on('error', reject);
-    req.setTimeout(15000, () => { req.destroy(new Error('timeout')); });
+    req.setTimeout(timeoutMs, () => { req.destroy(new Error('timeout')); });
     if (body) req.write(body);
     req.end();
   });

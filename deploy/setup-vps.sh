@@ -18,6 +18,8 @@ TG_BOT_TOKEN="${TG_BOT_TOKEN:-}"
 TG_CHAT_ID="${TG_CHAT_ID:-}"
 VK_GROUP_ID="${VK_GROUP_ID:-210723656}"
 VK_TOKEN="${VK_TOKEN:-}"
+# Запасной канал: у российских хостеров Telegram заблокирован, заявки идут через релей
+RELAY_URL="${RELAY_URL:-https://capital-store-msk.onrender.com/api/order}"
 # Для приватного репозитория: GITHUB_TOKEN=github_pat_... bash setup-vps.sh
 GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 
@@ -68,6 +70,7 @@ VK_TOKEN=${VK_TOKEN}
 VK_API_VERSION=5.199
 TG_BOT_TOKEN=${TG_BOT_TOKEN}
 TG_CHAT_ID=${TG_CHAT_ID}
+RELAY_URL=${RELAY_URL}
 EOF
   chmod 600 "$APP_DIR/.env"
   echo "    создан $APP_DIR/.env"
