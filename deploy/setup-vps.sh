@@ -26,12 +26,24 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 apt-get install -y -qq curl git nginx ca-certificates
 
-echo "==> 2/6 Node.js 20"
+echo "==> 2/6 Node.js"
 if ! command -v node >/dev/null 2>&1; then
-  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-  apt-get install -y -qq nodejs
+  # сначала NodeSource (Node 20); если дистрибутив не поддержан — берём из репозитория Ubuntu
+  if curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >/dev/null 2>&1; then
+    apt-get install -y -qq nodejs || true
+  fi
+  if ! command -v node >/dev/null 2>&1; then
+    echo "    NodeSource недоступен для этой версии Ubuntu — ставлю nodejs из репозитория дистрибутива"
+    apt-get install -y -qq nodejs
+  fi
 fi
+NODE_BIN="$(command -v node)"
 node -v
+NODE_MAJOR="$(node -v | sed 's/^v\([0-9]*\).*/\1/')"
+if [ "${NODE_MAJOR}" -lt 18 ]; then
+  echo "!! Нужен Node 18 или новее, а установлен $(node -v). Останавливаюсь."
+  exit 1
+fi
 
 echo "==> 3/6 Код проекта"
 CLONE_URL="$REPO_URL"
@@ -72,7 +84,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=${APP_DIR}
-ExecStart=/usr/bin/node ${APP_DIR}/server.js
+ExecStart=${NODE_BIN} ${APP_DIR}/server.js
 Restart=always
 RestartSec=3
 Environment=NODE_ENV=production
@@ -90,9 +102,9 @@ systemctl is-active --quiet capital-store && echo "    сервис запуще
 echo "==> 6/6 Nginx + SSL"
 cat > /etc/nginx/sites-available/capital-store <<EOF
 server {
-    listen 80;
-    listen [::]:80;
-    server_name ${DOMAIN} www.${DOMAIN};
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name ${DOMAIN} www.${DOMAIN} _;
 
     client_max_body_size 10m;
     gzip on;
