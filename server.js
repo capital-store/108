@@ -319,8 +319,9 @@ function formatOrder(d) {
 }
 const fmt = n => new Intl.NumberFormat('ru-RU').format(Math.round(Number(n) || 0));
 
-function sendTelegram(text) {
-  const payload = JSON.stringify({ chat_id: TG_CHAT_ID, text, parse_mode:'HTML', disable_web_page_preview:true });
+// Отправка одному получателю
+function sendTelegramTo(chatId, text) {
+  const payload = JSON.stringify({ chat_id: chatId, text, parse_mode:'HTML', disable_web_page_preview:true });
   return httpsRequest({
     method:'POST',
     hostname:'api.telegram.org',
@@ -328,8 +329,23 @@ function sendTelegram(text) {
     headers:{ 'Content-Type':'application/json', 'Content-Length':Buffer.byteLength(payload) },
   }, payload).then(r => {
     const res = JSON.parse(r || '{}');
-    if (!res.ok) throw new Error(res.description || 'telegram error');
+    if (!res.ok) throw new Error(`${chatId}: ${res.description || 'telegram error'}`);
     return res;
+  });
+}
+
+// Заявка уходит всем получателям из TG_CHAT_ID (через запятую).
+// Если одному не доставилось — остальные всё равно получат.
+function sendTelegram(text) {
+  const ids = String(TG_CHAT_ID || '').split(',').map(s => s.trim()).filter(Boolean);
+  if (!ids.length) return Promise.reject(new Error('не задан ни один получатель'));
+  return Promise.allSettled(ids.map(id => sendTelegramTo(id, text))).then(results => {
+    const ok = results.filter(r => r.status === 'fulfilled').length;
+    results.filter(r => r.status === 'rejected')
+           .forEach(r => console.error('Telegram, получатель недоступен:', r.reason && r.reason.message));
+    if (!ok) throw new Error(results[0].reason ? results[0].reason.message : 'не доставлено никому');
+    console.log(`Заявка отправлена в Telegram: ${ok} из ${ids.length} получателей`);
+    return ok;
   });
 }
 
